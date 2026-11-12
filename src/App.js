@@ -5,6 +5,8 @@ import FranceMap from './components/FranceMap';
 import HeroImage from './Image/hero.jpg';
 import { client } from './SanityConnect';
 import { defaults, mergeContent, safeHref, siteQuery } from './content/siteContent';
+import CalGazette from './CalGazette';
+import { fetchOfficialArticles } from './calApi';
 
 function ContentLink({ value, className, arrow, onClick }) {
   const href = safeHref(value?.href);
@@ -50,8 +52,9 @@ function PrincipleCard({ item, index }) {
   </article>;
 }
 
-function App() {
+function HomePage() {
   const [content, setContent] = useState(defaults);
+  const [officialArticles, setOfficialArticles] = useState([]);
   const [selectedCircleId, setSelectedCircleId] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [carouselState, setCarouselState] = useState({ start: true, end: false });
@@ -74,6 +77,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+    fetchOfficialArticles(controller.signal).then(data => {
+      setOfficialArticles(Array.isArray(data) ? data : []);
+    }).catch(() => {
+      // The local journal remains available while the new article type is not deployed.
+    });
+    return () => controller.abort();
+  }, []);
+
+  const carouselArticles = [...officialArticles, ...journal.articles];
+
+  useEffect(() => {
     const carousel = carouselRef.current;
     const update = () => setCarouselState({
       start: carousel.scrollLeft <= 2,
@@ -84,7 +99,7 @@ function App() {
     const observer = new ResizeObserver(update);
     observer.observe(carousel);
     return () => { observer.disconnect(); carousel.removeEventListener('scroll', update); };
-  }, [journal.articles]);
+  }, [carouselArticles.length]);
 
   const scrollCarousel = direction => {
     const carousel = carouselRef.current;
@@ -134,7 +149,7 @@ function App() {
             <p className="description">{accueil.description}</p>
             <div className="bouton">
               <ContentLink className="btn btnPlein" value={accueil.principal} arrow="↓" />
-              <ContentLink className="btn btnOut" value={accueil.secondaire} arrow="↗" />
+              <ContentLink className="btn btnOut" value={accueil.secondaire} arrow="↓" />
             </div>
           </div>
           <img src={accueil.image?.url || HeroImage} alt={accueil.image?.alt || accueil.imageAlt} fetchPriority="high" />
@@ -155,14 +170,14 @@ function App() {
           </div>
         </div>
         <div className="carouselArticle" id="articles" ref={carouselRef} tabIndex="0" role="region" aria-label={journal.titre}>
-          {journal.articles.map((article, index) => <article className="articleCard" key={article._key || index}>
+          {carouselArticles.map((article, index) => <article className="articleCard" key={article._key || index}>
             <div className="articleImage">
               {article.image?.url && <img src={article.image.url} alt={article.image.alt || ''} loading="lazy" />}
               <span>{article.categorie}</span>
             </div>
             <div className="articleContent">
               <div><h3>{article.titre}</h3><p>{article.description}</p></div>
-              <ContentLink value={{ label: journal.lireArticle, href: article.href }} arrow="↗" />
+              <ContentLink value={{ label: journal.lireArticle, href: article.href }} arrow="↓" />
             </div>
           </article>)}
         </div>
@@ -189,7 +204,7 @@ function App() {
               </div>
               <label htmlFor="message">{formulaire.message}</label><textarea id="message" name="message" rows="5" maxLength={2500} required />
               <p className="formInfo" id="form-info">{canContact ? formulaire.information : formulaire.indisponible}</p>
-              <button className="btn btnPlein" type="submit" disabled={!canContact}>{formulaire.envoyer}<span aria-hidden="true">↗</span></button>
+              <button className="btn btnPlein" type="submit" disabled={!canContact}>{formulaire.envoyer}<span aria-hidden="true">↓</span></button>
             </div>
           </form>
         </div>
@@ -198,14 +213,18 @@ function App() {
     <footer>
       <div className="hero">
         <p>{footer.surtitre}</p><h2 className="title">{footer.titre}<br />{footer.titreSuite}</h2>
-        <ContentLink className="btn" value={footer.soutien} arrow="↗" />
+        <ContentLink className="btn" value={footer.soutien} arrow="↓" />
       </div>
       <div className="footer-bottom">
         <div className="footer-left"><img src={footer.logo?.url || navigation.logo?.url || LogoImage} alt={footer.logo?.alt || footer.logoAlt} loading="lazy" /><p>{footer.copyright}</p></div>
-        <div className="footer-right">{footer.liens.map((link, index) => <ContentLink key={link._key || index} value={link} arrow={link.href === '#acceuil' ? '↑' : '↗'} />)}</div>
+        <div className="footer-right">{footer.liens.map((link, index) => <ContentLink key={link._key || index} value={link} arrow={link.href === '#acceuil' ? '↑' : '↓'} />)}</div>
       </div>
     </footer>
   </div>;
+}
+
+function App() {
+  return window.location.pathname === '/cal' ? <CalGazette /> : <HomePage />;
 }
 
 export default App;

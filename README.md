@@ -1,5 +1,23 @@
 # Getting Started with Create React App
 
+## Gazette des CAL (`/cal`)
+
+La nouvelle page `/cal` est un espace membre : l’utilisateur se connecte avant de consulter la gazette et de proposer un article. Une proposition contient un titre, un texte, une image facultative, une rubrique et le nom ou pseudo de son auteur·rice.
+
+### Sécurité et publication
+
+Les mots de passe ne sont pas stockés dans Sanity. Créez les comptes email/mot de passe dans **Supabase Auth**, puis créez le profil associé dans Sanity. Cette séparation évite de rendre les identifiants accessibles depuis le CMS.
+
+1. Créez un dataset Sanity privé, par exemple `members`.
+2. Dans le Studio connecté à ce dataset, enregistrez `calMember` et `calArticle` depuis [`sanity/schemaTypes/index.js`](./sanity/schemaTypes/index.js).
+3. Pour chaque personne, créez son compte dans Supabase Auth puis un document **Membre CAL** avec le même `authUserId`, son email, son pseudo et son rôle.
+4. Copiez [`.env.example`](./.env.example) en `.env.local` pour le site, puis définissez les mêmes variables serveur dans Vercel. Le jeton Sanity d’écriture ne doit jamais porter le préfixe `REACT_APP_`.
+5. Déployez le site sur Vercel : les fonctions `api/articles.js` et `api/official-articles.js` y protègent l’envoi des articles et l’accès au dataset privé.
+
+Les nouvelles propositions arrivent avec le statut **À relire**. Une personne ayant le rôle éditorial les valide dans Sanity en choisissant **Page officielle** et une date de publication. Elles apparaissent alors automatiquement dans le carrousel de la page d’accueil et dans la Gazette. Ce filtre est fait côté serveur : ni les brouillons ni les emails ne sont exposés au navigateur.
+
+Pour les essais locaux, lancez aussi un environnement compatible avec les fonctions `api/` (par exemple `vercel dev`). Sans configuration, le site conserve les cartes du journal existant et affiche un message clair sur la page Gazette.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
