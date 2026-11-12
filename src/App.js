@@ -175,10 +175,10 @@ function HomePage() {
           {carouselArticles.map((article, index) => <article className="articleCard" key={article._key || index}>
             <div className="articleImage">
               {article.image?.url && <img src={article.image.url} alt={article.image.alt || ''} loading="lazy" />}
-              <span>{article.categorie}</span>
+              <span>{article.category || article.categorie || 'Gazette'}</span>
             </div>
             <div className="articleContent">
-              <div><h3>{article.titre}</h3><p>{article.description}</p></div>
+              <div><h3>{article.title || article.titre}</h3><p>{article.description || article.excerpt || article.body}</p></div>
               <ContentLink value={{ label: journal.lireArticle, href: article.href }} arrow="↓" />
             </div>
           </article>)}
