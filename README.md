@@ -11,12 +11,12 @@ Les mots de passe ne sont pas stockés dans Sanity. Créez les comptes email/mot
 1. Créez un dataset Sanity privé, par exemple avec `npx sanity datasets create members --visibility private`.
 2. Lancez le Studio depuis ce dossier avec `npm run sanity` (ou `npx sanity dev`) : sa configuration et les schémas `calMember` / `calArticle` sont déjà inclus.
 3. Pour chaque personne, allez dans **Supabase → Authentication → Users → Add user → Send invitation**. Après le lien reçu par email, la page `/activer-compte` lui demandera de choisir son mot de passe puis l’ouvrira dans `/cal`. Copiez ensuite l’identifiant UUID du compte Supabase dans le document **Membre CAL** de Sanity, avec son email, son pseudo et son rôle.
-4. Dans Supabase, renseignez `https://votre-domaine.fr/activer-compte` comme **Site URL** dans **Authentication → URL Configuration** et autorisez aussi `http://localhost:3000/**`. Copiez [`.env.example`](./.env.example) en `.env.local` pour le site, puis définissez les mêmes variables serveur dans Vercel. Le jeton Sanity d’écriture ne doit jamais porter le préfixe `REACT_APP_`.
-5. Déployez le site sur Vercel : les fonctions `api/articles.js` et `api/official-articles.js` y protègent l’envoi des articles et l’accès au dataset privé.
+4. Dans Supabase, renseignez `https://votre-domaine.fr/activer-compte` comme **Site URL** dans **Authentication → URL Configuration** et autorisez aussi `http://localhost:3000/**`. Copiez [`.env.example`](./.env.example) en `.env.local` pour le site. Le jeton Sanity d’écriture ne doit jamais porter le préfixe `REACT_APP_`.
+5. Sur Hostinger, le site est une application **Express** (`server.js`) : elle sert le build React et les routes `api/articles` et `api/official-articles`. Dans hPanel, type d’application `express`, fichier d’entrée `server.js`, script de build `build`, répertoire de sortie vide. Ajoutez les variables de [`.env.example`](./.env.example) dans **Environment variables**, puis redéployez.
 
 Les nouvelles propositions arrivent avec le statut **À relire**. Une personne ayant le rôle éditorial les valide dans Sanity en choisissant **Page officielle** et une date de publication. Elles apparaissent alors automatiquement dans le carrousel de la page d’accueil et dans la Gazette. Ce filtre est fait côté serveur : ni les brouillons ni les emails ne sont exposés au navigateur.
 
-Pour les essais locaux, lancez aussi un environnement compatible avec les fonctions `api/` (par exemple `vercel dev`). Sans configuration, le site conserve les cartes du journal existant et affiche un message clair sur la page Gazette.
+Pour les essais locaux, `npm run dev` branche les mêmes routes API. `npm start` lance le serveur de production après `npm run build`. Sans configuration, le site conserve les cartes du journal existant et affiche un message clair sur la page Gazette.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

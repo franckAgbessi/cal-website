@@ -1,8 +1,9 @@
 const storageKey = 'cal-session';
 
 function configuration() {
-  const url = process.env.REACT_APP_SUPABASE_URL?.replace(/\/$/, '');
-  const key = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
+  const runtime = typeof window !== 'undefined' ? window.__CAL_PUBLIC_CONFIG__ : null;
+  const url = (runtime?.supabaseUrl || process.env.REACT_APP_SUPABASE_URL)?.replace(/\/$/, '');
+  const key = runtime?.supabaseKey || process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error('La connexion n’est pas encore configurée.');
   return { url, key };
 }
