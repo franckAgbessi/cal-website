@@ -17,6 +17,8 @@ export const officialArticlesQuery = `*[_type == "calArticle" && publicationStat
   "_key": _id,
   category,
   title,
+  excerpt,
+  body,
   "description": coalesce(excerpt, body),
   "href": "/cal#article-" + _id,
   image { alt, "url": asset->url },

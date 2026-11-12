@@ -227,27 +227,56 @@ body { margin: 0; background: $beige; font-family: $sans; color: $grey; }
 .gazetteMemberBar { max-width: 1120px; margin: 24px auto 0; display: flex; justify-content: space-between; gap: 16px; padding-bottom: 13px; border-bottom: 1px solid var(--rule); font-size: 12px;
   button { padding: 0; border: 0; background: none; color: inherit; font-weight: 700; text-decoration: underline; }
 }
+.gazetteSections { max-width: 1120px; margin: 22px auto 0; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid var(--rule);
+  button { flex: 0 0 auto; padding: 10px 13px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--ink); cursor: pointer; font-size: 12px; font-weight: 700;
+    &:hover, &.isActive { border-bottom-color: $red; color: $red; }
+  }
+}
 .gazetteLead { align-items: end; background: $navy; color: $beige; border-color: $navy;
   .gazetteKicker { color: $gold-light; }
   .gazetteCta { justify-self: end; width: fit-content; margin: 0; background: $gold; color: $navy; border-color: $gold; }
+}
+.gazetteTools { max-width: 1120px; margin: 0 auto 24px; display: grid; grid-template-columns: 1fr minmax(240px, 430px) auto; align-items: center; gap: 15px; font-size: 12px; font-weight: 700;
+  input { min-width: 0; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 0; background: #fffdf9; color: var(--ink); }
+  span { color: #806521; text-align: right; }
 }
 .gazetteArticles { max-width: 1120px; margin: 0 auto 70px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); }
 .gazetteArticle { display: grid; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--rule);
   &:nth-child(odd) { padding-right: clamp(20px, 4vw, 48px); border-right: 1px solid var(--rule); }
   &:nth-child(even) { padding-left: clamp(20px, 4vw, 48px); }
   img { width: 100%; aspect-ratio: 1.85; object-fit: cover; filter: saturate(.75); }
-  h3 { margin: 8px 0; font: 400 clamp(25px, 2.8vw, 38px)/1.12 $serif; }
+  h3 { margin: 8px 0; font: 400 clamp(25px, 2.8vw, 38px)/1.12 $serif;
+    button { padding: 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
+  }
+  .gazetteExcerpt { max-width: 48ch; }
+  .gazetteByline { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-top: 14px; font-size: 12px; font-weight: 700;
+    button { padding: 0; border: 0; background: none; color: $red; cursor: pointer; font-weight: 700; }
+  }
   small { display: block; margin-top: 14px; font-size: 12px; font-weight: 700; }
+}
+.gazetteArticleFeatured { grid-column: 1 / -1; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 70px); padding-block: 34px;
+  h3 { font-size: clamp(34px, 5vw, 68px); }
+  &:nth-child(odd), &:nth-child(even) { padding-inline: 0; border-right: 0; }
 }
 .gazetteEmpty { grid-column: 1 / -1; padding: 35px 0; text-align: center; font: 400 24px $serif; }
 .articleComposer { margin-bottom: 0; background: #e8dfcc; }
 .composerGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
 .formError, .formSuccess { margin: 0; padding: 10px; font-size: 13px; font-weight: 600; }
 .formError { background: #f5dfe0; color: #741c2a; }.formSuccess { background: #e2eddf; color: #234d2c; }
+.gazetteDialogBackdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 20px; background: rgba($navy, .72); }
+.gazetteDialog { position: relative; max-width: 760px; max-height: 90vh; overflow-y: auto; padding: clamp(24px, 5vw, 58px); background: var(--paper); color: var(--ink);
+  img { width: 100%; max-height: 330px; margin-bottom: 28px; object-fit: cover; }
+  h2 { margin: 10px 0 15px; font: 400 clamp(32px, 5vw, 62px)/1.05 $serif; }
+}
+.gazetteDialogClose { position: absolute; top: 12px; right: 16px; border: 0; background: none; color: var(--ink); font-size: 30px; line-height: 1; cursor: pointer; }
+.gazetteDialogByline { font-size: 13px; font-weight: 700; }
+.gazetteDialogText { margin-top: 28px !important; white-space: pre-line; font: 400 18px/1.8 $serif; }
 @media (max-width: $mobile) {
   .gazetteGate, .gazetteLead, .articleComposer { grid-template-columns: 1fr; margin-block: 32px; }
   .gazetteLead .gazetteCta { justify-self: stretch; width: 100%; }
   .gazetteArticles { grid-template-columns: 1fr; }
   .gazetteArticle { &:nth-child(odd), &:nth-child(even) { padding-inline: 0; border-right: 0; } }
+  .gazetteArticleFeatured { grid-template-columns: 1fr; }
+  .gazetteTools { grid-template-columns: 1fr; span { text-align: left; } }
   .composerGrid { grid-template-columns: 1fr; }
 }

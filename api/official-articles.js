@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   try {
     const client = createClient({ projectId: SANITY_PROJECT_ID, dataset: SANITY_MEMBERS_DATASET, apiVersion: '2026-03-01', token: SANITY_WRITE_TOKEN, useCdn: false });
     const articles = await client.fetch(`*[_type == "calArticle" && publicationStatus == "official"] | order(officialPublishedAt desc, _createdAt desc)[0...12] {
-      _id, "_key": _id, category, title, "description": coalesce(excerpt, body),
+      _id, "_key": _id, category, title, excerpt, body, "description": coalesce(excerpt, body),
       "href": "/cal#article-" + _id, image { alt, "url": asset->url }, authorName, officialPublishedAt
     }`);
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');

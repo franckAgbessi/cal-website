@@ -1,7 +1,7 @@
 const { createClient } = require('@sanity/client');
 
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
-const allowedCategories = new Set(['Vie locale', 'Initiative', 'Portrait', 'Débat']);
+const allowedCategories = new Set(['Vie locale', 'Initiative', 'Portrait', 'Débat', 'Culture', 'Agenda']);
 
 function config() {
   const required = ['SUPABASE_URL', 'SANITY_PROJECT_ID', 'SANITY_WRITE_TOKEN', 'SANITY_MEMBERS_DATASET', 'SANITY_ARTICLES_DATASET'];

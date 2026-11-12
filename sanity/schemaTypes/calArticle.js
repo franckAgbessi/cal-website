@@ -8,7 +8,7 @@ export const calArticle = defineType({
     defineField({ name: 'excerpt', title: 'Chapô', type: 'text', rows: 3, validation: rule => rule.required().max(300) }),
     defineField({ name: 'body', title: 'Article', type: 'text', rows: 16, validation: rule => rule.required().max(8000) }),
     defineField({ name: 'image', title: 'Image', type: 'image', options: { hotspot: true }, fields: [defineField({ name: 'alt', title: 'Texte alternatif', type: 'string', validation: rule => rule.warning('Décrivez l’image pour les lecteurs d’écran.') })] }),
-    defineField({ name: 'category', title: 'Rubrique', type: 'string', options: { list: ['Vie locale', 'Initiative', 'Portrait', 'Débat'] }, validation: rule => rule.required() }),
+    defineField({ name: 'category', title: 'Rubrique', type: 'string', options: { list: ['Vie locale', 'Initiative', 'Portrait', 'Débat', 'Culture', 'Agenda'] }, validation: rule => rule.required() }),
     defineField({ name: 'authorName', title: 'Nom ou pseudo de l’auteur·rice', type: 'string', validation: rule => rule.required().max(60) }),
     defineField({ name: 'authorId', title: 'Identifiant membre', type: 'string', readOnly: true }),
     defineField({ name: 'publicationIntent', title: 'Demande de l’auteur·rice', type: 'string', options: { list: [{ title: 'Gazette des membres', value: 'members' }, { title: 'Proposition pour la page officielle', value: 'official-request' }], layout: 'radio' } }),
