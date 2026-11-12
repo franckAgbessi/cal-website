@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/cal", "destination": "/index.html" }
+    { "source": "/cal", "destination": "/index.html" },
+    { "source": "/activer-compte", "destination": "/index.html" }
   ]
 }

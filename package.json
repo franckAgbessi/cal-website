@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "sanity": "CHOKIDAR_USEPOLLING=true sanity dev",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@sanity/icons": "^5.3.0",
-    "sanity": "^6.23.0"
+    "sanity": "^6.23.0",
+    "styled-components": "^6.6.0"
   }
 }

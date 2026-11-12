@@ -8,10 +8,10 @@ La nouvelle page `/cal` est un espace membre : l’utilisateur se connecte avant
 
 Les mots de passe ne sont pas stockés dans Sanity. Créez les comptes email/mot de passe dans **Supabase Auth**, puis créez le profil associé dans Sanity. Cette séparation évite de rendre les identifiants accessibles depuis le CMS.
 
-1. Créez un dataset Sanity privé, par exemple `members`.
-2. Dans le Studio connecté à ce dataset, enregistrez `calMember` et `calArticle` depuis [`sanity/schemaTypes/index.js`](./sanity/schemaTypes/index.js).
-3. Pour chaque personne, créez son compte dans Supabase Auth puis un document **Membre CAL** avec le même `authUserId`, son email, son pseudo et son rôle.
-4. Copiez [`.env.example`](./.env.example) en `.env.local` pour le site, puis définissez les mêmes variables serveur dans Vercel. Le jeton Sanity d’écriture ne doit jamais porter le préfixe `REACT_APP_`.
+1. Créez un dataset Sanity privé, par exemple avec `npx sanity datasets create members --visibility private`.
+2. Lancez le Studio depuis ce dossier avec `npm run sanity` (ou `npx sanity dev`) : sa configuration et les schémas `calMember` / `calArticle` sont déjà inclus.
+3. Pour chaque personne, allez dans **Supabase → Authentication → Users → Add user → Send invitation**. Après le lien reçu par email, la page `/activer-compte` lui demandera de choisir son mot de passe puis l’ouvrira dans `/cal`. Copiez ensuite l’identifiant UUID du compte Supabase dans le document **Membre CAL** de Sanity, avec son email, son pseudo et son rôle.
+4. Dans Supabase, renseignez `https://votre-domaine.fr/activer-compte` comme **Site URL** dans **Authentication → URL Configuration** et autorisez aussi `http://localhost:3000/**`. Copiez [`.env.example`](./.env.example) en `.env.local` pour le site, puis définissez les mêmes variables serveur dans Vercel. Le jeton Sanity d’écriture ne doit jamais porter le préfixe `REACT_APP_`.
 5. Déployez le site sur Vercel : les fonctions `api/articles.js` et `api/official-articles.js` y protègent l’envoi des articles et l’accès au dataset privé.
 
 Les nouvelles propositions arrivent avec le statut **À relire**. Une personne ayant le rôle éditorial les valide dans Sanity en choisissant **Page officielle** et une date de publication. Elles apparaissent alors automatiquement dans le carrousel de la page d’accueil et dans la Gazette. Ce filtre est fait côté serveur : ni les brouillons ni les emails ne sont exposés au navigateur.

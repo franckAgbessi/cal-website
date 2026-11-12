@@ -7,6 +7,8 @@ import { client } from './SanityConnect';
 import { defaults, mergeContent, safeHref, siteQuery } from './content/siteContent';
 import CalGazette from './CalGazette';
 import { fetchOfficialArticles } from './calApi';
+import { getInviteSession } from './calApi';
+import ActivateAccount from './ActivateAccount';
 
 function ContentLink({ value, className, arrow, onClick }) {
   const href = safeHref(value?.href);
@@ -224,6 +226,13 @@ function HomePage() {
 }
 
 function App() {
+  const invitation = getInviteSession();
+  if (window.location.pathname === '/activer-compte') return <ActivateAccount />;
+  // Links sent before the dashboard redirect is updated still arrive safely here.
+  if (window.location.pathname === '/cal' && invitation) {
+    window.history.replaceState({}, document.title, `/activer-compte${window.location.hash}`);
+    return <ActivateAccount />;
+  }
   return window.location.pathname === '/cal' ? <CalGazette /> : <HomePage />;
 }
 

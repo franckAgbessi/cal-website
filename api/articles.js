@@ -4,8 +4,9 @@ const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const allowedCategories = new Set(['Vie locale', 'Initiative', 'Portrait', 'Débat']);
 
 function config() {
-  const required = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SANITY_PROJECT_ID', 'SANITY_WRITE_TOKEN', 'SANITY_MEMBERS_DATASET', 'SANITY_ARTICLES_DATASET'];
+  const required = ['SUPABASE_URL', 'SANITY_PROJECT_ID', 'SANITY_WRITE_TOKEN', 'SANITY_MEMBERS_DATASET', 'SANITY_ARTICLES_DATASET'];
   if (required.some(key => !process.env[key])) throw new Error('Configuration serveur incomplète.');
+  if (!process.env.SUPABASE_PUBLISHABLE_KEY && !process.env.SUPABASE_ANON_KEY) throw new Error('Clé Supabase publique manquante.');
   return process.env;
 }
 
@@ -14,7 +15,7 @@ function text(value, limit) { return typeof value === 'string' ? value.trim().sl
 async function getMember(req, env) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
   if (!token) return null;
-  const auth = await fetch(`${env.SUPABASE_URL.replace(/\/$/, '')}/auth/v1/user`, { headers: { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` } });
+  const auth = await fetch(`${env.SUPABASE_URL.replace(/\/$/, '')}/auth/v1/user`, { headers: { apikey: env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` } });
   if (!auth.ok) return null;
   const user = await auth.json();
   const members = createClient({ projectId: env.SANITY_PROJECT_ID, dataset: env.SANITY_MEMBERS_DATASET, apiVersion: '2026-03-01', token: env.SANITY_WRITE_TOKEN, useCdn: false });
