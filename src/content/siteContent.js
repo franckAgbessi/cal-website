@@ -12,18 +12,30 @@ export const siteQuery = `*[_type == "calSite"] | order(_updatedAt desc)[0] {
 
 // Only articles explicitly approved for the public site are exposed here.
 // Member submissions stay behind the authenticated API.
-export const officialArticlesQuery = `*[_type == "calArticle" && publicationStatus == "official"] | order(officialPublishedAt desc, _createdAt desc)[0...12] {
+export const officialArticlesQuery = `*[_type == "calArticle" && (publicationStatus in ["both", "main", "official"])] | order(isFeatured desc, officialPublishedAt desc, _createdAt desc)[0...12] {
   _id,
   "_key": _id,
   category,
+  location,
+  kicker,
   title,
+  subtitle,
   excerpt,
   body,
   "description": coalesce(excerpt, body),
+  readingTime,
+  isFeatured,
+  quote,
+  factbox,
+  tags,
   "href": "/cal#article-" + _id,
-  image { alt, "url": asset->url },
+  image { alt, caption, credit, "url": asset->url },
+  gallery[] { alt, caption, credit, "url": asset->url },
   authorName,
-  officialPublishedAt
+  authorRole,
+  authorAvatar { "url": asset->url },
+  officialPublishedAt,
+  publicationStatus
 }`;
 
 // Null or missing fields retain the existing site; empty arrays deliberately hide items.

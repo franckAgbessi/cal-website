@@ -2,7 +2,6 @@
   "name": "cal",
   "version": "0.1.0",
   "private": true,
-  "main": "server.js",
   "engines": {
     "node": ">=18"
   },
@@ -12,7 +11,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^13.5.0",
-    "express": "^4.22.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-scripts": "5.0.1",
@@ -20,9 +18,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "start": "react-scripts start",
     "dev": "react-scripts start",
-    "start": "node server.js",
     "sanity": "CHOKIDAR_USEPOLLING=true sanity dev",
+    "sanity:deploy": "sanity deploy",
+    "sanity:build": "sanity build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

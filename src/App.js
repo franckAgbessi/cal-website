@@ -10,6 +10,12 @@ import { fetchOfficialArticles } from './calApi';
 import { getInviteSession } from './calApi';
 import ActivateAccount from './ActivateAccount';
 
+function formatDate(value) {
+  return value
+    ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value))
+    : 'Aujourd’hui';
+}
+
 function ContentLink({ value, className, arrow, onClick }) {
   const href = safeHref(value?.href);
   if (!href) return null;
@@ -37,7 +43,6 @@ function PrincipleCard({ item, index }) {
   const text = (item.texte || '').trim();
   const [introduction, ...points] = text.split(/\s+–\s+/);
   const paragraphs = introduction.split(/\n\s*\n/).filter(Boolean);
-  // Give legacy single-paragraph CMS content the same readable hierarchy.
   if (paragraphs.length === 1) {
     const end = introduction.indexOf('. ');
     if (end !== -1) paragraphs.splice(0, 1, introduction.slice(0, end + 1), introduction.slice(end + 2));
@@ -59,6 +64,7 @@ function HomePage() {
   const [officialArticles, setOfficialArticles] = useState([]);
   const [selectedCircleId, setSelectedCircleId] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [carouselState, setCarouselState] = useState({ start: true, end: false });
   const carouselRef = useRef(null);
   const { navigation, accueil, manifeste, journal, territoires, formulaire, footer } = content;
@@ -172,16 +178,47 @@ function HomePage() {
           </div>
         </div>
         <div className="carouselArticle" id="articles" ref={carouselRef} tabIndex="0" role="region" aria-label={journal.titre}>
-          {carouselArticles.map((article, index) => <article className="articleCard" key={article._key || index}>
-            <div className="articleImage">
-              {article.image?.url && <img src={article.image.url} alt={article.image.alt || ''} loading="lazy" />}
-              <span>{article.category || article.categorie || 'Gazette'}</span>
-            </div>
-            <div className="articleContent">
-              <div><h3>{article.title || article.titre}</h3><p>{article.description || article.excerpt || article.body}</p></div>
-              <ContentLink value={{ label: journal.lireArticle, href: article.href }} arrow="↓" />
-            </div>
-          </article>)}
+          {carouselArticles.map((article, index) => {
+            const hasFullContent = Boolean(article.body || article.content);
+            const categoryLabel = article.kicker || article.category || article.categorie || 'Gazette';
+            const locationPrefix = article.location ? `📍 ${article.location} · ` : '';
+
+            return (
+              <article className="articleCard" key={article._key || article._id || index}>
+                <div className="articleImage" style={{ position: 'relative' }}>
+                  {article.image?.url && <img src={article.image.url} alt={article.image.alt || ''} loading="lazy" />}
+                  <span>{locationPrefix}{categoryLabel}</span>
+                  {article.readingTime && (
+                    <span style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '0.72rem', background: 'rgba(0,0,0,0.65)', color: '#fff', padding: '2px 6px', borderRadius: '4px' }}>
+                      ⏱ {article.readingTime} min
+                    </span>
+                  )}
+                </div>
+                <div className="articleContent">
+                  <div>
+                    <h3>{article.title || article.titre}</h3>
+                    {article.subtitle && (
+                      <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#64748b', margin: '0 0 0.4rem' }}>
+                        {article.subtitle}
+                      </p>
+                    )}
+                    <p>{article.excerpt || article.description || article.body}</p>
+                  </div>
+                  {hasFullContent ? (
+                    <button
+                      type="button"
+                      style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      onClick={() => setSelectedArticle(article)}
+                    >
+                      {journal.lireArticle} <span aria-hidden="true">↓</span>
+                    </button>
+                  ) : (
+                    <ContentLink value={{ label: journal.lireArticle, href: article.href || '/cal' }} arrow="↓" />
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
       <section className="Territoire" id="Territoire" aria-labelledby="territoires-title">
@@ -212,6 +249,140 @@ function HomePage() {
         </div>
       </section>
     </main>
+
+    {/* Modale de lecture complète de l'article sur la Page d'accueil */}
+    {selectedArticle && (
+      <div
+        className="gazetteDialogBackdrop"
+        role="presentation"
+        onClick={event => { if (event.target === event.currentTarget) setSelectedArticle(null); }}
+      >
+        <article className="gazetteDialog" role="dialog" aria-modal="true" aria-labelledby="article-title" style={{ maxWidth: '840px', maxHeight: '92vh', overflowY: 'auto' }}>
+          <button type="button" className="gazetteDialogClose" aria-label="Fermer" onClick={() => setSelectedArticle(null)}>×</button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+            {selectedArticle.kicker && (
+              <span style={{ fontWeight: '800', letterSpacing: '0.08em', color: '#b91c1c', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                {selectedArticle.kicker}
+              </span>
+            )}
+            {selectedArticle.location && (
+              <span style={{ background: '#f1f5f9', color: '#0f172a', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                📍 {selectedArticle.location}
+              </span>
+            )}
+            <span style={{ color: '#64748b', fontSize: '0.82rem' }}>· {selectedArticle.category || selectedArticle.categorie || 'Gazette'}</span>
+            {selectedArticle.readingTime && (
+              <span style={{ color: '#64748b', fontSize: '0.82rem' }}>· ⏱ Lecture {selectedArticle.readingTime} min</span>
+            )}
+          </div>
+
+          <h2 id="article-title" style={{ fontSize: '2.1rem', lineHeight: '1.25', margin: '0 0 0.6rem', fontFamily: 'serif' }}>
+            {selectedArticle.title || selectedArticle.titre}
+          </h2>
+
+          {selectedArticle.subtitle && (
+            <p style={{ fontSize: '1.15rem', lineHeight: '1.45', color: '#475569', fontStyle: 'italic', margin: '0 0 1rem' }}>
+              {selectedArticle.subtitle}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.3rem' }}>
+            {selectedArticle.authorAvatar?.url && (
+              <img
+                src={selectedArticle.authorAvatar.url}
+                alt={selectedArticle.authorName || ''}
+                style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
+              />
+            )}
+            <div>
+              <p style={{ margin: 0, fontWeight: '700', fontSize: '0.95rem' }}>
+                Par {selectedArticle.authorName || 'La rédaction'}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                {selectedArticle.authorRole ? `${selectedArticle.authorRole} · ` : ''}Publié le {formatDate(selectedArticle.officialPublishedAt || selectedArticle._createdAt)}
+              </p>
+            </div>
+          </div>
+
+          {selectedArticle.image?.url && (
+            <figure style={{ margin: '0 0 1.5rem' }}>
+              <img
+                src={selectedArticle.image.url}
+                alt={selectedArticle.image.alt || selectedArticle.title}
+                style={{ width: '100%', borderRadius: '8px', objectFit: 'cover', maxHeight: '420px' }}
+              />
+              {(selectedArticle.image.caption || selectedArticle.image.credit) && (
+                <figcaption style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <span>{selectedArticle.image.caption}</span>
+                  {selectedArticle.image.credit && <span>© {selectedArticle.image.credit}</span>}
+                </figcaption>
+              )}
+            </figure>
+          )}
+
+          {selectedArticle.excerpt && (
+            <div style={{ fontSize: '1.18rem', fontWeight: '500', lineHeight: '1.65', color: '#0f172a', paddingLeft: '1.1rem', borderLeft: '4px solid #b91c1c', marginBottom: '1.6rem' }}>
+              {selectedArticle.excerpt}
+            </div>
+          )}
+
+          {selectedArticle.factbox && (selectedArticle.factbox.title || (Array.isArray(selectedArticle.factbox.items) && selectedArticle.factbox.items.length > 0)) && (
+            <aside style={{ margin: '1.5rem 0', padding: '1.2rem 1.4rem', background: '#f8fafc', borderTop: '3px solid #0284c7', borderRadius: '6px' }}>
+              <h4 style={{ margin: '0 0 0.6rem', color: '#0369a1', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                📌 {selectedArticle.factbox.title || 'Repères'}
+              </h4>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.7', color: '#334155' }}>
+                {(selectedArticle.factbox.items || []).map((item, idx) => (
+                  <li key={idx} style={{ marginBottom: '0.4rem' }}>{item}</li>
+                ))}
+              </ul>
+            </aside>
+          )}
+
+          {selectedArticle.quote?.text && (
+            <blockquote style={{ margin: '1.8rem 0', padding: '1.2rem 1.6rem', background: '#f8fafc', borderLeft: '4px solid #0f172a', borderRadius: '4px', fontStyle: 'italic', fontSize: '1.15rem' }}>
+              « {selectedArticle.quote.text} »
+              {selectedArticle.quote.author && (
+                <cite style={{ display: 'block', fontSize: '0.88rem', color: '#64748b', marginTop: '0.5rem', fontStyle: 'normal' }}>
+                  — {selectedArticle.quote.author}
+                </cite>
+              )}
+            </blockquote>
+          )}
+
+          <div style={{ whiteSpace: 'pre-line', lineHeight: '1.9', fontSize: '1.08rem', color: '#334155' }}>
+            {selectedArticle.body || selectedArticle.description}
+          </div>
+
+          {Array.isArray(selectedArticle.gallery) && selectedArticle.gallery.length > 0 && (
+            <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
+              <h4 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>📸 En images</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                {selectedArticle.gallery.map((img, idx) => (
+                  <figure key={idx} style={{ margin: 0 }}>
+                    <img src={img.url} alt={img.alt || `Photo ${idx + 1}`} style={{ width: '100%', borderRadius: '6px', height: '180px', objectFit: 'cover' }} />
+                    {img.caption && <figcaption style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.3rem' }}>{img.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Array.isArray(selectedArticle.tags) && selectedArticle.tags.length > 0 && (
+            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>Mots-clés :</span>
+              {selectedArticle.tags.map((tag, idx) => (
+                <span key={idx} style={{ fontSize: '0.78rem', background: '#f1f5f9', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#334155' }}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </article>
+      </div>
+    )}
+
     <footer>
       <div className="hero">
         <p>{footer.surtitre}</p><h2 className="title">{footer.titre}<br />{footer.titreSuite}</h2>
@@ -228,7 +399,6 @@ function HomePage() {
 function App() {
   const invitation = getInviteSession();
   if (window.location.pathname === '/activer-compte') return <ActivateAccount />;
-  // Links sent before the dashboard redirect is updated still arrive safely here.
   if (window.location.pathname === '/cal' && invitation) {
     window.history.replaceState({}, document.title, `/activer-compte${window.location.hash}`);
     return <ActivateAccount />;

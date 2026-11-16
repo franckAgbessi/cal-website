@@ -7,7 +7,7 @@ export default defineConfig({
   name: 'cal-members',
   title: 'Gazette CAL — membres',
   projectId: 'gacrkjml',
-  dataset: process.env.SANITY_STUDIO_DATASET || 'members',
+  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
   plugins: [structureTool()],
   schema: { types: schemaTypes },
 });

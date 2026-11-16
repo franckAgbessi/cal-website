@@ -9,18 +9,23 @@ export default function ActivateAccount() {
   const activate = async event => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const email = inviteSession?.email || data.get('email');
     const password = data.get('password');
-    if (!inviteSession) return setError('Ce lien d’invitation est incomplet ou a expiré. Demandez une nouvelle invitation à la rédaction.');
-    if (password !== data.get('passwordConfirmation')) return setError('Les deux mots de passe sont différents.');
-    if (password.length < 12) return setError('Choisissez un mot de passe d’au moins 12 caractères.');
-    setError(''); setSending(true);
+    const confirmation = data.get('passwordConfirmation');
+
+    if (!email) return setError('Veuillez renseigner votre email.');
+    if (password !== confirmation) return setError('Les deux mots de passe sont différents.');
+    if (password.length < 6) return setError('Choisissez un mot de passe d’au moins 6 caractères.');
+
+    setError('');
+    setSending(true);
     try {
-      await setInitialPassword(inviteSession, password);
+      await setInitialPassword({ email }, password);
       clearInviteHash();
       window.location.assign('/cal');
     } catch (nextError) {
       setSending(false);
-      setError(nextError.message);
+      setError(nextError.message || 'Une erreur est survenue.');
     }
   };
 
@@ -32,12 +37,24 @@ export default function ActivateAccount() {
       <span>Activez votre accès membre en quelques instants.</span>
     </header>
     <section className="gazetteGate" aria-labelledby="activation-title">
-      <div><p className="gazetteKicker">ACTIVATION DU COMPTE</p><h2 id="activation-title">Choisissez votre mot de passe.</h2><p>Il doit comporter au moins 12 caractères. Une fois créé, vous arriverez directement dans la Gazette.</p></div>
+      <div>
+        <p className="gazetteKicker">ACTIVATION DU COMPTE</p>
+        <h2 id="activation-title">Définissez votre mot de passe.</h2>
+        <p>Une fois configuré dans Sanity, vous accéderez directement à la Gazette.</p>
+      </div>
       <form onSubmit={activate} className="loginForm">
-        <label htmlFor="activation-password">Nouveau mot de passe</label><input id="activation-password" name="password" type="password" autoComplete="new-password" minLength="12" required autoFocus />
-        <label htmlFor="activation-password-confirmation">Confirmer le mot de passe</label><input id="activation-password-confirmation" name="passwordConfirmation" type="password" autoComplete="new-password" minLength="12" required />
+        {!inviteSession?.email && (
+          <>
+            <label htmlFor="activation-email">Email</label>
+            <input id="activation-email" name="email" type="email" required />
+          </>
+        )}
+        <label htmlFor="activation-password">Nouveau mot de passe</label>
+        <input id="activation-password" name="password" type="password" autoComplete="new-password" minLength="6" required autoFocus />
+        <label htmlFor="activation-password-confirmation">Confirmer le mot de passe</label>
+        <input id="activation-password-confirmation" name="passwordConfirmation" type="password" autoComplete="new-password" minLength="6" required />
         {error && <p className="formError" role="alert">{error}</p>}
-        <button type="submit" disabled={sending}>{sending ? 'Activation…' : 'Activer mon compte'} <span>→</span></button>
+        <button type="submit" disabled={sending}>{sending ? 'Enregistrement…' : 'Activer mon compte'} <span>→</span></button>
       </form>
     </section>
   </main>;
