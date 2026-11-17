@@ -152,7 +152,8 @@ export async function fetchOfficialArticles(signal) {
   }`;
 
   try {
-    const data = await client.fetch(query, {}, { signal });
+    const fetcher = sanityClient?.fetch ? sanityClient : client;
+    const data = await fetcher.fetch(query, {}, { signal });
     return Array.isArray(data) ? data : [];
   } catch (error) {
     if (error.name !== 'AbortError') {
@@ -195,7 +196,8 @@ export async function fetchMemberArticles(signal) {
   }`;
 
   try {
-    const data = await sanityClient.fetch(query, {}, { signal });
+    const fetcher = sanityClient?.fetch ? sanityClient : client;
+    const data = await fetcher.fetch(query, {}, { signal });
     return Array.isArray(data) ? data : [];
   } catch (error) {
     if (error.name !== 'AbortError') {

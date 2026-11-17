@@ -94,10 +94,14 @@ function HomePage() {
     return () => controller.abort();
   }, []);
 
-  const carouselArticles = [...officialArticles, ...journal.articles];
+  // Uniquement les articles Sanity ayant l'option "Gazette ET Site principal" ou "Site principal uniquement"
+  const carouselArticles = officialArticles.filter(article =>
+    ['both', 'main', 'official'].includes(article?.publicationStatus)
+  );
 
   useEffect(() => {
     const carousel = carouselRef.current;
+    if (!carousel) return undefined;
     const update = () => setCarouselState({
       start: carousel.scrollLeft <= 2,
       end: carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 2,
@@ -178,47 +182,41 @@ function HomePage() {
           </div>
         </div>
         <div className="carouselArticle" id="articles" ref={carouselRef} tabIndex="0" role="region" aria-label={journal.titre}>
-          {carouselArticles.map((article, index) => {
-            const hasFullContent = Boolean(article.body || article.content);
-            const categoryLabel = article.kicker || article.category || article.categorie || 'Gazette';
-            const locationPrefix = article.location ? `📍 ${article.location} · ` : '';
-
-            return (
-              <article className="articleCard" key={article._key || article._id || index}>
-                <div className="articleImage" style={{ position: 'relative' }}>
-                  {article.image?.url && <img src={article.image.url} alt={article.image.alt || ''} loading="lazy" />}
-                  <span>{locationPrefix}{categoryLabel}</span>
-                  {article.readingTime && (
-                    <span style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '0.72rem', background: 'rgba(0,0,0,0.65)', color: '#fff', padding: '2px 6px', borderRadius: '4px' }}>
-                      ⏱ {article.readingTime} min
-                    </span>
-                  )}
+          {carouselArticles.length > 0 ? (
+            carouselArticles.map((article, index) => (
+              <article
+                className="articleCard"
+                key={article._key || article._id || index}
+                onClick={() => setSelectedArticle(article)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="articleImage">
+                  {article.image?.url && <img src={article.image.url} alt={article.image.alt || article.title || ''} loading="lazy" />}
+                  <span>{article.category || 'Gazette'}</span>
                 </div>
                 <div className="articleContent">
                   <div>
                     <h3>{article.title || article.titre}</h3>
-                    {article.subtitle && (
-                      <p style={{ fontStyle: 'italic', fontSize: '0.85rem', color: '#64748b', margin: '0 0 0.4rem' }}>
-                        {article.subtitle}
-                      </p>
-                    )}
                     <p>{article.excerpt || article.description || article.body}</p>
                   </div>
-                  {hasFullContent ? (
-                    <button
-                      type="button"
-                      style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      onClick={() => setSelectedArticle(article)}
-                    >
-                      {journal.lireArticle} <span aria-hidden="true">↓</span>
-                    </button>
-                  ) : (
-                    <ContentLink value={{ label: journal.lireArticle, href: article.href || '/cal' }} arrow="↓" />
-                  )}
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedArticle(article);
+                    }}
+                  >
+                    {journal.lireArticle} <span aria-hidden="true">↓</span>
+                  </button>
                 </div>
               </article>
-            );
-          })}
+            ))
+          ) : (
+            <p style={{ padding: '2.5rem 1rem', color: '#64748b', fontStyle: 'italic', textAlign: 'center', width: '100%' }}>
+              Aucun article Sanity publié sur la page principale pour le moment.
+            </p>
+          )}
         </div>
       </section>
       <section className="Territoire" id="Territoire" aria-labelledby="territoires-title">

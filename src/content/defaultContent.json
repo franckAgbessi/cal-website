@@ -85,32 +85,7 @@
     "lireArticle": "Lire l’article",
     "precedent": "Article précédent",
     "suivant": "Article suivant",
-    "articles": [
-      {
-        "_key": "0",
-        "categorie": "ACTUALITÉ",
-        "titre": "La vie du mouvement",
-        "description": "Découvrez les dernières actualités et les initiatives du Cercle."
-      },
-      {
-        "_key": "1",
-        "categorie": "TERRITOIRES",
-        "titre": "Nos actions locales",
-        "description": "Un engagement concret au plus près de nos territoires."
-      },
-      {
-        "_key": "2",
-        "categorie": "ÉVÉNEMENT",
-        "titre": "Nos prochaines rencontres",
-        "description": "Retrouvez les événements et les rencontres à venir."
-      },
-      {
-        "_key": "3",
-        "categorie": "MANIFESTE",
-        "titre": "Construire ensemble",
-        "description": "Découvrez notre vision et les valeurs qui nous rassemblent."
-      }
-    ]
+    "articles": []
   },
   "territoires": {
     "surtitre": "NOS TERRITOIRES",
