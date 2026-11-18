@@ -1,4 +1,6 @@
+import { accueil } from './accueil';
 import { calArticle } from './calArticle';
 import { calMember } from './calMember';
+import { calSite } from './calSite';
 
-export const schemaTypes = [calArticle, calMember];
+export const schemaTypes = [calSite, accueil, calArticle, calMember];

@@ -1,0 +1,1120 @@
+[
+  {
+    "fields": [
+      {
+        "description": "Textes, titres, boutons et image principale tout en haut du site.",
+        "fields": [
+          {
+            "placeholder": "Transmission · Enracinement · Action",
+            "name": "surtitre",
+            "type": "string"
+          },
+          {
+            "placeholder": "Un héritage vivant.",
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ]
+              }
+            ],
+            "name": "titre",
+            "type": "string",
+            "title": "Titre principal"
+          },
+          {
+            "placeholder": "Un avenir",
+            "name": "titreSuite",
+            "type": "string",
+            "title": "Suite du titre (deuxième ligne)"
+          },
+          {
+            "placeholder": "à bâtir.",
+            "name": "accent",
+            "type": "string",
+            "title": "Mot mis en valeur (couleur or)"
+          },
+          {
+            "rows": 3,
+            "placeholder": "Se former, se structurer et agir au service du Bien Commun...",
+            "name": "description",
+            "type": "text",
+            "title": "Texte descriptif d’introduction"
+          },
+          {
+            "options": {
+              "hotspot": true
+            },
+            "fields": [
+              {
+                "name": "alt",
+                "type": "string",
+                "title": "Texte descriptif (Alt)"
+              }
+            ],
+            "name": "image",
+            "type": "image",
+            "title": "Grande image de droite (Héro)"
+          },
+          {
+            "fields": [
+              {
+                "placeholder": "Adhérer au mouvement",
+                "name": "label",
+                "type": "string",
+                "title": "Texte du bouton"
+              },
+              {
+                "placeholder": "#Territoire",
+                "name": "href",
+                "type": "string",
+                "title": "Lien du bouton (ex: #Territoire ou URL)"
+              }
+            ],
+            "name": "principal",
+            "type": "object",
+            "title": "Bouton principal (fond plein)"
+          },
+          {
+            "fields": [
+              {
+                "placeholder": "Découvrir le manifeste",
+                "name": "label",
+                "type": "string",
+                "title": "Texte du bouton"
+              },
+              {
+                "placeholder": "#manifest",
+                "name": "href",
+                "type": "string",
+                "title": "Lien du bouton (ex: #manifest)"
+              }
+            ],
+            "name": "secondaire",
+            "type": "object",
+            "title": "Bouton secondaire (contour)"
+          }
+        ],
+        "name": "accueil",
+        "type": "object",
+        "title": "Héro de la page d’accueil",
+        "fieldset": "accueil"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "name": "alt",
+                "type": "string",
+                "title": "Texte alternatif du logo"
+              }
+            ],
+            "name": "logo",
+            "type": "image",
+            "title": "Logo de navigation"
+          },
+          {
+            "fields": [
+              {
+                "name": "label",
+                "type": "string",
+                "title": "Texte"
+              },
+              {
+                "name": "href",
+                "type": "string",
+                "title": "Lien"
+              }
+            ],
+            "name": "adhesion",
+            "type": "object",
+            "title": "Bouton Adhérer (Navigation)"
+          },
+          {
+            "fields": [
+              {
+                "name": "label",
+                "type": "string",
+                "title": "Texte"
+              },
+              {
+                "name": "href",
+                "type": "string",
+                "title": "Lien"
+              }
+            ],
+            "name": "soutien",
+            "type": "object",
+            "title": "Bouton Soutenir (Navigation)"
+          }
+        ],
+        "name": "navigation",
+        "type": "object",
+        "title": "Barre de navigation supérieure",
+        "fieldset": "navigation"
+      },
+      {
+        "fields": [
+          {
+            "name": "surtitre",
+            "type": "string"
+          },
+          {
+            "name": "titre",
+            "type": "string",
+            "title": "Titre de section"
+          },
+          {
+            "rows": 3,
+            "name": "description",
+            "type": "text",
+            "title": "Texte d’introduction"
+          },
+          {
+            "of": [
+              {
+                "fields": [
+                  {
+                    "name": "titre",
+                    "type": "string",
+                    "title": "Titre du principe"
+                  },
+                  {
+                    "rows": 4,
+                    "name": "texte",
+                    "type": "text",
+                    "title": "Texte explicatif"
+                  }
+                ],
+                "type": "object"
+              }
+            ],
+            "name": "principes",
+            "type": "array",
+            "title": "Principes du mouvement (Cartes numérotées)"
+          }
+        ],
+        "name": "manifeste",
+        "type": "object",
+        "title": "Section Manifeste",
+        "fieldset": "manifeste"
+      },
+      {
+        "fields": [
+          {
+            "name": "surtitre",
+            "type": "string"
+          },
+          {
+            "name": "titre",
+            "type": "string"
+          },
+          {
+            "name": "titreSuite",
+            "type": "string",
+            "title": "Suite du titre"
+          },
+          {
+            "name": "accent",
+            "type": "string",
+            "title": "Mot accentué"
+          },
+          {
+            "rows": 3,
+            "name": "description",
+            "type": "text"
+          },
+          {
+            "of": [
+              {
+                "fields": [
+                  {
+                    "validation": [
+                      {
+                        "level": "error",
+                        "rules": [
+                          {
+                            "flag": "presence",
+                            "constraint": "required"
+                          }
+                        ]
+                      }
+                    ],
+                    "name": "nom",
+                    "type": "string",
+                    "title": "Nom du cercle"
+                  },
+                  {
+                    "name": "ville",
+                    "type": "string",
+                    "title": "Ville ou région"
+                  },
+                  {
+                    "name": "latitude",
+                    "type": "number",
+                    "title": "Latitude (GPS)"
+                  },
+                  {
+                    "name": "longitude",
+                    "type": "number",
+                    "title": "Longitude (GPS)"
+                  },
+                  {
+                    "rows": 2,
+                    "name": "description",
+                    "type": "text",
+                    "title": "Courte présentation du cercle"
+                  }
+                ],
+                "type": "object"
+              }
+            ],
+            "name": "cercles",
+            "type": "array",
+            "title": "Liste des Cercles locaux sur la carte"
+          }
+        ],
+        "name": "territoires",
+        "type": "object",
+        "title": "Section Territoires & Carte",
+        "fieldset": "territoires"
+      },
+      {
+        "fields": [
+          {
+            "name": "surtitre",
+            "type": "string"
+          },
+          {
+            "name": "titre",
+            "type": "string",
+            "title": "Titre du formulaire"
+          },
+          {
+            "rows": 2,
+            "name": "description",
+            "type": "text",
+            "title": "Texte d’aide"
+          },
+          {
+            "name": "emailDestinataire",
+            "type": "string",
+            "title": "Email de réception des messages"
+          }
+        ],
+        "name": "formulaire",
+        "type": "object",
+        "title": "Formulaire de contact / adhésion",
+        "fieldset": "formulaire"
+      },
+      {
+        "fields": [
+          {
+            "name": "surtitre",
+            "type": "string",
+            "title": "Surtitre du bandeau final"
+          },
+          {
+            "name": "titre",
+            "type": "string",
+            "title": "Titre final"
+          },
+          {
+            "name": "titreSuite",
+            "type": "string",
+            "title": "Suite du titre"
+          },
+          {
+            "name": "copyright",
+            "type": "string",
+            "title": "Mention de copyright"
+          }
+        ],
+        "name": "footer",
+        "type": "object",
+        "title": "Pied de page (Footer)",
+        "fieldset": "footer"
+      }
+    ],
+    "fieldsets": [
+      {
+        "name": "accueil",
+        "title": "1. Section Accueil (Héro)",
+        "options": {
+          "collapsible": true,
+          "collapsed": false
+        }
+      },
+      {
+        "name": "navigation",
+        "title": "2. En-tête & Navigation",
+        "options": {
+          "collapsible": true,
+          "collapsed": true
+        }
+      },
+      {
+        "name": "manifeste",
+        "title": "3. Section Manifeste & Principes",
+        "options": {
+          "collapsible": true,
+          "collapsed": true
+        }
+      },
+      {
+        "name": "territoires",
+        "title": "4. Section Territoires & Cercles",
+        "options": {
+          "collapsible": true,
+          "collapsed": true
+        }
+      },
+      {
+        "name": "formulaire",
+        "title": "5. Formulaire de Contact",
+        "options": {
+          "collapsible": true,
+          "collapsed": true
+        }
+      },
+      {
+        "name": "footer",
+        "title": "6. Pied de page (Footer)",
+        "options": {
+          "collapsible": true,
+          "collapsed": true
+        }
+      }
+    ],
+    "name": "calSite",
+    "type": "document",
+    "title": "Page d’Accueil & Contenu du Site"
+  },
+  {
+    "fields": [
+      {
+        "placeholder": "Transmission · Enracinement · Action",
+        "name": "surtitre",
+        "type": "string"
+      },
+      {
+        "placeholder": "Un héritage vivant.",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "titre",
+        "type": "string",
+        "title": "Titre principal"
+      },
+      {
+        "placeholder": "Un avenir",
+        "name": "titreSuite",
+        "type": "string",
+        "title": "Suite du titre (deuxième ligne)"
+      },
+      {
+        "placeholder": "à bâtir.",
+        "name": "accent",
+        "type": "string",
+        "title": "Mot mis en valeur (couleur or)"
+      },
+      {
+        "rows": 4,
+        "placeholder": "Se former, se structurer et agir au service du Bien Commun...",
+        "name": "description",
+        "type": "text",
+        "title": "Texte d’introduction / description"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "fields": [
+          {
+            "name": "alt",
+            "type": "string",
+            "title": "Texte descriptif (Alt)"
+          }
+        ],
+        "name": "image",
+        "type": "image",
+        "title": "Grande image d’illustration (droite)"
+      },
+      {
+        "fields": [
+          {
+            "placeholder": "Adhérer au mouvement",
+            "name": "texte",
+            "type": "string",
+            "title": "Texte du bouton"
+          },
+          {
+            "placeholder": "#Territoire",
+            "name": "lien",
+            "type": "string",
+            "title": "Lien (ex: #Territoire)"
+          }
+        ],
+        "name": "boutonPrincipal",
+        "type": "object",
+        "title": "Bouton principal"
+      },
+      {
+        "fields": [
+          {
+            "placeholder": "Découvrir le manifeste",
+            "name": "texte",
+            "type": "string",
+            "title": "Texte du bouton"
+          },
+          {
+            "placeholder": "#manifest",
+            "name": "lien",
+            "type": "string",
+            "title": "Lien (ex: #manifest)"
+          }
+        ],
+        "name": "boutonSecondaire",
+        "type": "object",
+        "title": "Bouton secondaire"
+      }
+    ],
+    "name": "accueil",
+    "type": "document",
+    "title": "Héro Accueil (Titre & Image)"
+  },
+  {
+    "fields": [
+      {
+        "placeholder": "ex: ENQUÊTE, REPORTAGE, TRIBUNE, VIE LOCALE, EXCLUSIF, DOSSIER",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 60
+              }
+            ]
+          }
+        ],
+        "description": "Accroche placée au-dessus du titre (en majuscules rouges, style Le Monde / La Dépêche).",
+        "name": "kicker",
+        "type": "string",
+        "title": "Surtitre (Rubrique d’accroche)",
+        "fieldset": "titrage"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 160
+              }
+            ]
+          }
+        ],
+        "description": "Le titre percutant de l’article.",
+        "name": "title",
+        "type": "string",
+        "title": "Grand Titre principal",
+        "fieldset": "titrage"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 280
+              }
+            ]
+          }
+        ],
+        "description": "Complément de lecture pour contextualiser le titre.",
+        "name": "subtitle",
+        "type": "string",
+        "title": "Sous-titre / Relance de lecture",
+        "fieldset": "titrage"
+      },
+      {
+        "options": {
+          "source": "title",
+          "maxLength": 100
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug",
+        "title": "Identifiant URL (Slug)",
+        "fieldset": "titrage"
+      },
+      {
+        "rows": 3,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 500
+              }
+            ]
+          }
+        ],
+        "description": "Paragraphe d’accroche mis en exergue en tête d’article.",
+        "name": "excerpt",
+        "type": "text",
+        "title": "Chapô journalistique (Introduction)",
+        "fieldset": "titrage"
+      },
+      {
+        "initialValue": 3,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "min",
+                "constraint": 1
+              },
+              {
+                "flag": "max",
+                "constraint": 60
+              }
+            ]
+          }
+        ],
+        "name": "readingTime",
+        "type": "number",
+        "title": "Temps de lecture (minutes)",
+        "fieldset": "titrage"
+      },
+      {
+        "initialValue": false,
+        "description": "L’article sera mis en avant au sommet du journal.",
+        "name": "isFeatured",
+        "type": "boolean",
+        "title": "Mettre à la Une (Article phare)",
+        "fieldset": "titrage"
+      },
+      {
+        "placeholder": "ex: Toulouse, Nantes, Occitanie, Lyon, Paris",
+        "description": "Ancrage territorial (très prisé en presse régionale type La Dépêche).",
+        "name": "location",
+        "type": "string",
+        "title": "Territoire / Ville / Lieu du reportage",
+        "fieldset": "signature"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 80
+              }
+            ]
+          }
+        ],
+        "name": "authorName",
+        "type": "string",
+        "title": "Nom ou signature de l’auteur·rice",
+        "fieldset": "signature"
+      },
+      {
+        "placeholder": "ex: Grand reporter, Envoyé spécial, Délégué de cercle, Correspondant local",
+        "name": "authorRole",
+        "type": "string",
+        "title": "Qualité ou fonction",
+        "fieldset": "signature"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "name": "authorAvatar",
+        "type": "image",
+        "title": "Portrait / Photo de l’auteur·rice",
+        "fieldset": "signature"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "fields": [
+          {
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ]
+              }
+            ],
+            "name": "alt",
+            "type": "string",
+            "title": "Description pour malvoyants (Alt)"
+          },
+          {
+            "placeholder": "Explication de la scène photographiée...",
+            "name": "caption",
+            "type": "string",
+            "title": "Légende journalistique"
+          },
+          {
+            "placeholder": "ex: AFP, CAL Médias, Reuters, Archives cercle",
+            "name": "credit",
+            "type": "string",
+            "title": "Crédit photo / Agence"
+          }
+        ],
+        "name": "image",
+        "type": "image",
+        "title": "Photographie principale (À la Une)",
+        "fieldset": "media"
+      },
+      {
+        "description": "Photos complémentaires insérées dans le reportage.",
+        "of": [
+          {
+            "options": {
+              "hotspot": true
+            },
+            "fields": [
+              {
+                "name": "alt",
+                "type": "string",
+                "title": "Texte alternatif"
+              },
+              {
+                "name": "caption",
+                "type": "string",
+                "title": "Légende"
+              },
+              {
+                "name": "credit",
+                "type": "string",
+                "title": "Crédit"
+              }
+            ],
+            "type": "image"
+          }
+        ],
+        "name": "gallery",
+        "type": "array",
+        "title": "Galerie de reportage (Photos secondaires)",
+        "fieldset": "media"
+      },
+      {
+        "description": "Phrase forte extraite de l’article pour rythmer la mise en page (style Le Monde).",
+        "fields": [
+          {
+            "rows": 2,
+            "name": "text",
+            "type": "text",
+            "title": "Texte de la citation"
+          },
+          {
+            "name": "author",
+            "type": "string",
+            "title": "Personnalité ou source citée"
+          }
+        ],
+        "name": "quote",
+        "type": "object",
+        "title": "Citation en exergue (Pull-quote)",
+        "fieldset": "contenu"
+      },
+      {
+        "description": "Encadré synthétique pour résumer les points clés (typique de la presse écrite).",
+        "fields": [
+          {
+            "placeholder": "ex: Les chiffres clés, Repères, À savoir",
+            "name": "title",
+            "type": "string",
+            "title": "Titre de l’encadré"
+          },
+          {
+            "of": [
+              {
+                "type": "string"
+              }
+            ],
+            "name": "items",
+            "type": "array",
+            "title": "Points clés (un par ligne)"
+          }
+        ],
+        "name": "factbox",
+        "type": "object",
+        "title": "Encadré « Repères / En chiffres » (Facultatif)",
+        "fieldset": "contenu"
+      },
+      {
+        "rows": 22,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 25000
+              }
+            ]
+          }
+        ],
+        "description": "Le texte complet du reportage ou de l’enquête.",
+        "name": "body",
+        "type": "text",
+        "title": "Corps de l’article (Texte intégral)",
+        "fieldset": "contenu"
+      },
+      {
+        "options": {
+          "list": [
+            "Vie locale",
+            "Initiative",
+            "Enquête & Reportage",
+            "Idées & Débats",
+            "Portrait",
+            "Culture",
+            "Tribune",
+            "Agenda & Rencontres"
+          ]
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "Vie locale",
+                  "Initiative",
+                  "Enquête & Reportage",
+                  "Idées & Débats",
+                  "Portrait",
+                  "Culture",
+                  "Tribune",
+                  "Agenda & Rencontres"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "category",
+        "type": "string",
+        "title": "Rubrique principale",
+        "fieldset": "diffusion"
+      },
+      {
+        "options": {
+          "layout": "tags"
+        },
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "tags",
+        "type": "array",
+        "title": "Mots-clés / Tags thématiques",
+        "fieldset": "diffusion"
+      },
+      {
+        "initialValue": "both",
+        "options": {
+          "list": [
+            {
+              "title": "🌟 Gazette ET Site principal (Accueil)",
+              "value": "both"
+            },
+            {
+              "title": "🔒 Gazette des membres uniquement",
+              "value": "gazette"
+            },
+            {
+              "title": "🌐 Site principal uniquement",
+              "value": "main"
+            },
+            {
+              "title": "📝 Brouillon / En relecture",
+              "value": "draft"
+            },
+            {
+              "title": "📦 Archivé",
+              "value": "archived"
+            }
+          ],
+          "layout": "radio"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "both",
+                  "gazette",
+                  "main",
+                  "draft",
+                  "archived"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "publicationStatus",
+        "type": "string",
+        "title": "Destination de diffusion",
+        "fieldset": "diffusion"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "officialPublishedAt",
+        "type": "datetime",
+        "title": "Date et heure de parution",
+        "fieldset": "diffusion"
+      }
+    ],
+    "fieldsets": [
+      {
+        "name": "titrage",
+        "title": "1. Titrage & Chapeau journalistique",
+        "options": {
+          "collapsible": true,
+          "collapsed": false
+        }
+      },
+      {
+        "name": "signature",
+        "title": "2. Signature, Auteur & Territoire",
+        "options": {
+          "collapsible": true,
+          "collapsed": false
+        }
+      },
+      {
+        "name": "media",
+        "title": "3. Photographies & Reportage visuel",
+        "options": {
+          "collapsible": true,
+          "collapsed": false
+        }
+      },
+      {
+        "name": "contenu",
+        "title": "4. Corps du texte, Citations & Encadré Repères",
+        "options": {
+          "collapsible": true,
+          "collapsed": false
+        }
+      },
+      {
+        "name": "diffusion",
+        "title": "5. Diffusion (Gazette / Site principal)",
+        "options": {
+          "collapsible": true,
+          "collapsed": false
+        }
+      }
+    ],
+    "name": "calArticle",
+    "type": "document",
+    "title": "Article de Presse / Gazette"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 60
+              }
+            ]
+          }
+        ],
+        "name": "displayName",
+        "type": "string",
+        "title": "Nom ou pseudo"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "email",
+        "type": "string",
+        "title": "Email de connexion"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "password",
+        "type": "string",
+        "title": "Mot de passe (ou hash)"
+      },
+      {
+        "initialValue": "member",
+        "options": {
+          "list": [
+            {
+              "title": "Membre",
+              "value": "member"
+            },
+            {
+              "title": "Éditeur·rice",
+              "value": "editor"
+            },
+            {
+              "title": "Administrateur·rice",
+              "value": "admin"
+            }
+          ],
+          "layout": "radio"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "member",
+                  "editor",
+                  "admin"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "role",
+        "type": "string",
+        "title": "Rôle"
+      },
+      {
+        "initialValue": true,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "active",
+        "type": "boolean",
+        "title": "Compte actif"
+      },
+      {
+        "name": "createdAt",
+        "type": "datetime",
+        "title": "Date de création"
+      }
+    ],
+    "name": "calMember",
+    "type": "document",
+    "title": "Membre CAL"
+  }
+]

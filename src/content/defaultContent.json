@@ -108,9 +108,14 @@
     "choix": "Choisissez",
     "message": "Votre message",
     "envoyer": "Préparer ma demande",
-    "information": "Ce formulaire ouvre votre messagerie. Vous pourrez vérifier votre demande avant de l’envoyer.",
-    "indisponible": "Le contact par e-mail sera disponible prochainement.",
-    "emailDestinataire": ""
+    "information": "Votre demande d’adhésion sera transmise directement par e-mail.",
+    "indisponible": "Le formulaire de contact sera disponible prochainement.",
+    "emailDestinataire": "",
+    "emailjsServiceId": "service_xe1h166",
+    "emailjsTemplateId": "",
+    "emailjsPublicKey": "",
+    "envoiEnCours": "Envoi en cours…",
+    "succesMessage": "Votre demande d’adhésion a été transmise avec succès ! Nous vous recontacterons très rapidement."
   },
   "footer": {
     "surtitre": "Pavons la route du prince jusqu’à Reims",

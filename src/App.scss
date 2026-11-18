@@ -1460,41 +1460,58 @@ body {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba($navy, .72);
+  background: rgba($navy, .75);
+  backdrop-filter: blur(6px);
 }
 
 .gazetteDialog {
   position: relative;
-  max-width: 760px;
-  max-height: 90vh;
+  max-width: 860px;
+  max-height: 92vh;
   overflow-y: auto;
-  padding: clamp(24px, 5vw, 58px);
-  background: var(--paper);
-  color: var(--ink);
+  padding: clamp(28px, 5vw, 56px);
+  background: $beige !important;
+  background-color: $beige !important;
+  color: $navy;
+  border: 1px solid $border;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba($navy, 0.35);
 
   img {
     width: 100%;
-    max-height: 330px;
-    margin-bottom: 28px;
+    border-radius: 8px;
     object-fit: cover;
   }
 
   h2 {
     margin: 10px 0 15px;
-    font: 400 clamp(32px, 5vw, 62px)/1.05 $serif;
+    font: 700 clamp(28px, 4vw, 42px)/1.2 $serif;
+    color: $navy;
   }
 }
 
 .gazetteDialogClose {
   position: absolute;
-  top: 12px;
-  right: 16px;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font-size: 30px;
+  top: 14px;
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid $border;
+  background: $surface;
+  color: $navy;
+  font-size: 22px;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: background $motion, transform $motion;
+
+  &:hover {
+    background: #e2ddd0;
+    transform: scale(1.05);
+  }
 }
 
 .gazetteDialogByline {
@@ -1550,8 +1567,4 @@ body {
   .composerGrid {
     grid-template-columns: 1fr;
   }
-}
-
-.gazetteDialog {
-  background-color: #FFF;
 }

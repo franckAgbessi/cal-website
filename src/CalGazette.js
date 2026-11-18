@@ -257,35 +257,35 @@ export default function CalGazette() {
           {/* Surtitre, Lieu & Rubrique */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
             {selectedArticle.kicker && (
-              <span style={{ fontWeight: '800', letterSpacing: '0.08em', color: '#b91c1c', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+              <span style={{ fontWeight: '800', letterSpacing: '0.08em', color: '#8d2631', fontSize: '0.85rem', textTransform: 'uppercase' }}>
                 {selectedArticle.kicker}
               </span>
             )}
             {selectedArticle.location && (
-              <span style={{ background: '#f1f5f9', color: '#0f172a', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+              <span style={{ background: '#0b1729', color: '#fbf9f4', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
                 📍 {selectedArticle.location}
               </span>
             )}
-            <span style={{ color: '#64748b', fontSize: '0.82rem' }}>· {selectedArticle.category || 'Gazette'}</span>
+            <span style={{ color: '#4e5a60', fontSize: '0.82rem' }}>· {selectedArticle.category || 'Gazette'}</span>
             {selectedArticle.readingTime && (
-              <span style={{ color: '#64748b', fontSize: '0.82rem' }}>· ⏱ Lecture {selectedArticle.readingTime} min</span>
+              <span style={{ color: '#4e5a60', fontSize: '0.82rem' }}>· ⏱ Lecture {selectedArticle.readingTime} min</span>
             )}
           </div>
 
           {/* Grand Titre */}
-          <h2 id="article-title" style={{ fontSize: '2.2rem', lineHeight: '1.22', margin: '0 0 0.6rem', fontFamily: 'serif' }}>
+          <h2 id="article-title" style={{ fontSize: '2.2rem', lineHeight: '1.22', margin: '0 0 0.6rem', fontFamily: 'serif', color: '#0b1729' }}>
             {selectedArticle.title}
           </h2>
 
           {/* Sous-titre / Relance */}
           {selectedArticle.subtitle && (
-            <p style={{ fontSize: '1.18rem', lineHeight: '1.45', color: '#475569', fontStyle: 'italic', margin: '0 0 1rem' }}>
+            <p style={{ fontSize: '1.18rem', lineHeight: '1.45', color: '#4e5a60', fontStyle: 'italic', margin: '0 0 1rem' }}>
               {selectedArticle.subtitle}
             </p>
           )}
 
           {/* Signature & Auteur */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.3rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', paddingBottom: '1rem', borderBottom: '1px solid #d9d4c8', marginBottom: '1.3rem' }}>
             {selectedArticle.authorAvatar?.url && (
               <img
                 src={selectedArticle.authorAvatar.url}
@@ -294,10 +294,10 @@ export default function CalGazette() {
               />
             )}
             <div>
-              <p style={{ margin: 0, fontWeight: '700', fontSize: '0.98rem' }}>
+              <p style={{ margin: 0, fontWeight: '700', fontSize: '0.98rem', color: '#0b1729' }}>
                 Par {selectedArticle.authorName || 'La rédaction'}
               </p>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#4e5a60' }}>
                 {selectedArticle.authorRole ? `${selectedArticle.authorRole} · ` : ''}Publié le {formatDate(selectedArticle.officialPublishedAt || selectedArticle._createdAt)}
               </p>
             </div>
@@ -312,7 +312,7 @@ export default function CalGazette() {
                 style={{ width: '100%', borderRadius: '8px', objectFit: 'cover', maxHeight: '440px' }}
               />
               {(selectedArticle.image.caption || selectedArticle.image.credit) && (
-                <figcaption style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.45rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <figcaption style={{ fontSize: '0.82rem', color: '#4e5a60', marginTop: '0.45rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <span>{selectedArticle.image.caption}</span>
                   {selectedArticle.image.credit && <span>© {selectedArticle.image.credit}</span>}
                 </figcaption>
@@ -322,18 +322,18 @@ export default function CalGazette() {
 
           {/* Chapô journalistique */}
           {selectedArticle.excerpt && (
-            <div style={{ fontSize: '1.2rem', fontWeight: '500', lineHeight: '1.65', color: '#0f172a', paddingLeft: '1.1rem', borderLeft: '4px solid #b91c1c', marginBottom: '1.6rem', fontStyle: 'normal' }}>
+            <div style={{ fontSize: '1.2rem', fontWeight: '500', lineHeight: '1.65', color: '#0b1729', paddingLeft: '1.1rem', borderLeft: '4px solid #8d2631', marginBottom: '1.6rem', fontStyle: 'normal' }}>
               {selectedArticle.excerpt}
             </div>
           )}
 
           {/* Encadré Repères / En chiffres (style presse régionale et nationale) */}
           {selectedArticle.factbox && (selectedArticle.factbox.title || (Array.isArray(selectedArticle.factbox.items) && selectedArticle.factbox.items.length > 0)) && (
-            <aside style={{ margin: '1.5rem 0', padding: '1.2rem 1.4rem', background: '#f8fafc', borderTop: '3px solid #0284c7', borderRadius: '6px' }}>
-              <h4 style={{ margin: '0 0 0.6rem', color: '#0369a1', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <aside style={{ margin: '1.5rem 0', padding: '1.2rem 1.4rem', background: '#f4eee3', border: '1px solid #d9d4c8', borderTop: '3px solid #8d2631', borderRadius: '6px' }}>
+              <h4 style={{ margin: '0 0 0.6rem', color: '#8d2631', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 📌 {selectedArticle.factbox.title || 'Repères & Chiffres clés'}
               </h4>
-              <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.7', color: '#334155' }}>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.7', color: '#2b363c' }}>
                 {(selectedArticle.factbox.items || []).map((item, idx) => (
                   <li key={idx} style={{ marginBottom: '0.4rem' }}>{item}</li>
                 ))}
@@ -343,10 +343,10 @@ export default function CalGazette() {
 
           {/* Citation en exergue (Pull-quote) */}
           {selectedArticle.quote?.text && (
-            <blockquote style={{ margin: '1.8rem 0', padding: '1.2rem 1.6rem', background: '#f8fafc', borderLeft: '4px solid #0f172a', borderRadius: '4px', fontStyle: 'italic', fontSize: '1.15rem' }}>
+            <blockquote style={{ margin: '1.8rem 0', padding: '1.2rem 1.6rem', background: '#f4eee3', borderLeft: '4px solid #8d2631', borderRadius: '4px', fontStyle: 'italic', fontSize: '1.15rem', color: '#0b1729' }}>
               « {selectedArticle.quote.text} »
               {selectedArticle.quote.author && (
-                <cite style={{ display: 'block', fontSize: '0.88rem', color: '#64748b', marginTop: '0.5rem', fontStyle: 'normal' }}>
+                <cite style={{ display: 'block', fontSize: '0.88rem', color: '#4e5a60', marginTop: '0.5rem', fontStyle: 'normal' }}>
                   — {selectedArticle.quote.author}
                 </cite>
               )}
@@ -354,9 +354,36 @@ export default function CalGazette() {
           )}
 
           {/* Corps de l'article avec typographie aérée */}
-          <div style={{ whiteSpace: 'pre-line', lineHeight: '1.9', fontSize: '1.08rem', color: '#334155', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <div style={{ whiteSpace: 'pre-line', lineHeight: '1.9', fontSize: '1.08rem', color: '#2b363c', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {selectedArticle.body || selectedArticle.description}
           </div>
+
+          {/* Galerie de photos de reportage */}
+          {Array.isArray(selectedArticle.gallery) && selectedArticle.gallery.length > 0 && (
+            <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #d9d4c8' }}>
+              <h4 style={{ margin: '0 0 1rem', fontSize: '1.1rem', color: '#0b1729' }}>📸 En images</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                {selectedArticle.gallery.map((img, idx) => (
+                  <figure key={idx} style={{ margin: 0 }}>
+                    <img src={img.url} alt={img.alt || `Photo ${idx + 1}`} style={{ width: '100%', borderRadius: '6px', height: '180px', objectFit: 'cover' }} />
+                    {img.caption && <figcaption style={{ fontSize: '0.78rem', color: '#4e5a60', marginTop: '0.3rem' }}>{img.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tags thématiques */}
+          {Array.isArray(selectedArticle.tags) && selectedArticle.tags.length > 0 && (
+            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #d9d4c8', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#4e5a60' }}>Mots-clés :</span>
+              {selectedArticle.tags.map((tag, idx) => (
+                <span key={idx} style={{ fontSize: '0.78rem', background: '#eee9de', border: '1px solid #d9d4c8', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#2b363c' }}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Galerie de photos de reportage */}
           {Array.isArray(selectedArticle.gallery) && selectedArticle.gallery.length > 0 && (

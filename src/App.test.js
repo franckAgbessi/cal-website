@@ -1,9 +1,13 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import emailjs from '@emailjs/browser';
 import App from './App';
 import { client } from './SanityConnect';
 import { defaults, mergeContent, safeHref } from './content/siteContent';
 
 jest.mock('./SanityConnect', () => ({ client: { fetch: jest.fn() } }));
+jest.mock('@emailjs/browser', () => ({
+  send: jest.fn(),
+}));
 beforeEach(() => {
   global.ResizeObserver = class { observe() {} disconnect() {} };
 });
@@ -57,4 +61,49 @@ test('map markers and form selection stay synchronized in both directions', asyn
   expect(toulouse).toHaveAttribute('aria-pressed', 'false');
   expect(screen.queryByRole('button', { name: 'Choisir Ancien cercle' })).not.toBeInTheDocument();
   expect(screen.getByRole('option', { name: 'Ancien cercle' })).toBeInTheDocument();
+});
+
+test('submits contact form through EmailJS when configured', async () => {
+  emailjs.send.mockResolvedValue({ status: 200, text: 'OK' });
+  client.fetch.mockResolvedValue({
+    formulaire: {
+      emailjsServiceId: 'service_xe1h166',
+      emailjsTemplateId: 'template_test123',
+      emailjsPublicKey: 'pk_test456',
+    },
+    territoires: {
+      cercles: [{ _key: 'paris', nom: 'CAL Paris', ville: 'Paris' }],
+    },
+  });
+
+  render(<App />);
+  const submitButton = screen.getByRole('button', { name: 'Préparer ma demande' });
+  await waitFor(() => expect(submitButton).toBeEnabled());
+
+  fireEvent.change(screen.getByLabelText('Votre nom'), { target: { value: 'Dupont' } });
+  fireEvent.change(screen.getByLabelText('Votre prénom'), { target: { value: 'Jean' } });
+  fireEvent.change(screen.getByLabelText('Votre e-mail'), { target: { value: 'jean.dupont@example.org' } });
+  fireEvent.change(screen.getByLabelText('Votre téléphone'), { target: { value: '0601020304' } });
+  fireEvent.change(screen.getByLabelText('Choisir un CAL'), { target: { value: 'paris' } });
+  fireEvent.change(screen.getByLabelText('Votre message'), { target: { value: 'Je souhaite adhérer.' } });
+
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(emailjs.send).toHaveBeenCalledWith(
+      'service_xe1h166',
+      'template_test123',
+      expect.objectContaining({
+        nom: 'Dupont',
+        prenom: 'Jean',
+        email: 'jean.dupont@example.org',
+        tel: '0601020304',
+        cal: 'CAL Paris — Paris',
+        message: 'Je souhaite adhérer.',
+      }),
+      { publicKey: 'pk_test456' }
+    );
+  });
+
+  expect(await screen.findByText(/transmise avec succès/i)).toBeInTheDocument();
 });

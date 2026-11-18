@@ -2,123 +2,133 @@ import { useEffect, useState } from 'react';
 import { client } from './SanityConnect';
 import './App.scss';
 import HeroImage from './Image/hero.jpg';
+import defaults from './content/defaultContent.json';
+import { safeHref } from './content/siteContent';
 
-const query = `*[_type == "accueil"] | order(_updatedAt desc)[0] {
-    surtitre,
-    titre,
-    description,
-    "image": {
-        "url": image.asset->url,
-        "alt": image.alt
-    },
-    "logo": {
-        "url": logo.asset->url,
-        "alt": logo.alt
-    },
-    boutonPrincipal,
-    boutonSecondaire
+export const accueilQuery = `*[_type == "accueil"] | order(_updatedAt desc)[0] {
+  surtitre,
+  titre,
+  titreSuite,
+  accent,
+  description,
+  "logo": {
+    "url": logo.asset->url,
+    "alt": coalesce(logo.alt, alt)
+  },
+  "image": {
+    "url": image.asset->url,
+    "alt": coalesce(image.alt, alt)
+  },
+  "principal": {
+    "label": coalesce(principal.label, principal.texte, boutonPrincipal.texte, boutonPrincipal.label),
+    "href": coalesce(principal.href, principal.lien, boutonPrincipal.lien, boutonPrincipal.href)
+  },
+  "secondaire": {
+    "label": coalesce(secondaire.label, secondaire.texte, boutonSecondaire.texte, boutonSecondaire.label),
+    "href": coalesce(secondaire.href, secondaire.lien, boutonSecondaire.lien, boutonSecondaire.href)
+  }
 }`;
 
-function Acceuil() {
-    const [accueil, setAccueil] = useState(null);
-    const [chargement, setChargement] = useState(true);
-    const [erreur, setErreur] = useState('');
+function ContentLink({ value, className, arrow }) {
+  const href = safeHref(value?.href || value?.lien);
+  if (!href) return null;
+  const external = /^https?:/i.test(href);
+  const label = value?.label || value?.texte;
+  return (
+    <a
+      className={className}
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+    >
+      {label}
+      {arrow && <span aria-hidden="true">{arrow}</span>}
+    </a>
+  );
+}
 
-    useEffect(() => {
-        let actif = true;
+function Acceuil({ content }) {
+  const [localAccueil, setLocalAccueil] = useState(null);
 
-        client.fetch(query)
-            .then((data) => {
-                if (actif) setAccueil(data);
-            })
-            .catch((error) => {
-                console.error('Erreur Sanity :', error);
+  useEffect(() => {
+    // Si aucun contenu n'a été fourni en prop, on charge directement depuis Sanity
+    if (!content) {
+      let actif = true;
+      const controller = new AbortController();
 
-                if (actif) {
-                    setErreur("Impossible de charger la page d’accueil.");
-                }
-            })
-            .finally(() => {
-                if (actif) setChargement(false);
-            });
+      client.fetch(accueilQuery, {}, { signal: controller.signal })
+        .then((data) => {
+          if (actif && data) setLocalAccueil(data);
+        })
+        .catch(() => {
+          // Utilisation du contenu par défaut
+        });
 
-        return () => {
-            actif = false;
-        };
-    }, []);
+      return () => {
+        actif = false;
+        controller.abort();
+      };
+    }
+  }, [content]);
 
-    return (
-        <div className="Acceuil">
-            <div className="image">
+  const accueilData = content || localAccueil || defaults.accueil;
 
+  const principal = {
+    label: accueilData?.principal?.label || accueilData?.principal?.texte || accueilData?.boutonPrincipal?.texte || defaults.accueil.principal.label,
+    href: accueilData?.principal?.href || accueilData?.principal?.lien || accueilData?.boutonPrincipal?.lien || defaults.accueil.principal.href,
+  };
 
-                <div className="Element">
+  const secondaire = {
+    label: accueilData?.secondaire?.label || accueilData?.secondaire?.texte || accueilData?.boutonSecondaire?.texte || defaults.accueil.secondaire.label,
+    href: accueilData?.secondaire?.href || accueilData?.secondaire?.lien || accueilData?.boutonSecondaire?.lien || defaults.accueil.secondaire.href,
+  };
 
-                    {accueil && (
-                        <>
-                            {accueil.logo?.url && (
-                                <img
-                                    className="logo"
-                                    src={accueil.logo.url}
-                                    alt={accueil.logo.alt || ''}
-                                />
-                            )}
+  return (
+    <section className="Acceuil" id="acceuil" aria-labelledby="accueil-title">
+      <div className="section">
+        <div className="aside">
+          {accueilData.logo?.url && (
+            <img
+              src={accueilData.logo.url}
+              alt={accueilData.logo.alt || ''}
+              className="heroLogo"
+              style={{ maxHeight: '56px', width: 'auto', marginBottom: '1.25rem', objectFit: 'contain' }}
+            />
+          )}
 
-                            {accueil.surtitre && (
-                                <p className="surtitre">
-                                    <span className='line'> </span>
-                                    {accueil.surtitre}
-                                </p>
-                            )}
+          {accueilData.surtitre && (
+            <p className="surtitre">{accueilData.surtitre}</p>
+          )}
 
-                            <h1 className="titre">
-                                {accueil.titre}
-                            </h1>
+          <h1 className="title" id="accueil-title">
+            {accueilData.titre}
+            {accueilData.titreSuite && (
+              <>
+                <br />
+                {accueilData.titreSuite}{' '}
+              </>
+            )}
+            {accueilData.accent && <span>{accueilData.accent}</span>}
+          </h1>
 
-                            <p className="description">
-                                {accueil.description}
+          {accueilData.description && (
+            <p className="description">{accueilData.description}</p>
+          )}
 
-                            </p>
+          <div className="bouton">
+            <ContentLink className="btn btnPlein" value={principal} arrow="↓" />
+            <ContentLink className="btn btnOut" value={secondaire} arrow="↓" />
+          </div>
+        </div>
 
-                            <div className="boutons">
-                                {accueil.boutonPrincipal?.lien &&
-                                    accueil.boutonPrincipal?.texte && (
-                                        <a
-                                            className="bouton bouton-principal"
-                                            href={accueil.boutonPrincipal.lien}
-                                        >
-                                            {accueil.boutonPrincipal.texte}
-                                            <span>↓</span>
-                                        </a>
-                                    )}
-
-                                {accueil.boutonSecondaire?.lien &&
-                                    accueil.boutonSecondaire?.texte && (
-                                        <a
-                                            className="bouton bouton-secondaire"
-                                            href={accueil.boutonSecondaire.lien}
-                                        >
-                                            {accueil.boutonSecondaire.texte}
-                                            <span>↗</span>
-                                        </a>
-                                    )}
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                <div
-                    className="hero-image"
-                    style={{
-                        backgroundImage: `url("${accueil?.image?.url || HeroImage}")`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        minHeight: '100%',
-                    }}
-                ></div>
-            </div>
-        </div >
-    );
+        <img
+          src={accueilData.image?.url || HeroImage}
+          alt={accueilData.image?.alt || accueilData.imageAlt || "Illustration du Cercle d’action légitimiste"}
+          fetchPriority="high"
+        />
+      </div>
+    </section>
+  );
 }
 
 export default Acceuil;

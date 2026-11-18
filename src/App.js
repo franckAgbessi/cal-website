@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import emailjs from '@emailjs/browser';
 import './App.scss';
 import LogoImage from './Image/logo.png';
 import FranceMap from './components/FranceMap';
-import HeroImage from './Image/hero.jpg';
 import { client } from './SanityConnect';
 import { defaults, mergeContent, safeHref, siteQuery } from './content/siteContent';
 import CalGazette from './CalGazette';
+import Acceuil from './Acceuil';
 import { fetchOfficialArticles } from './calApi';
 import { getInviteSession } from './calApi';
 import ActivateAccount from './ActivateAccount';
@@ -17,12 +18,13 @@ function formatDate(value) {
 }
 
 function ContentLink({ value, className, arrow, onClick }) {
-  const href = safeHref(value?.href);
+  const href = safeHref(value?.href || value?.lien);
   if (!href) return null;
   const external = /^https?:/i.test(href);
+  const label = value?.label || value?.texte;
   return <a className={className} href={href} onClick={onClick}
     target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>
-    {value.label}{arrow && <span aria-hidden="true">{arrow}</span>}
+    {label}{arrow && <span aria-hidden="true">{arrow}</span>}
   </a>;
 }
 
@@ -66,6 +68,7 @@ function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [carouselState, setCarouselState] = useState({ start: true, end: false });
+  const [formStatus, setFormStatus] = useState({ state: 'idle', message: '' });
   const carouselRef = useRef(null);
   const { navigation, accueil, manifeste, journal, territoires, formulaire, footer } = content;
 
@@ -77,7 +80,37 @@ function HomePage() {
   useEffect(() => {
     const controller = new AbortController();
     client.fetch(siteQuery, {}, { signal: controller.signal }).then(data => {
-      setContent(mergeContent(defaults, data));
+      if (!data) {
+        client.fetch(`*[_type == "accueil"] | order(_updatedAt desc)[0] {
+          surtitre, titre, titreSuite, accent, description,
+          "logo": { "alt": coalesce(logo.alt, alt), "url": logo.asset->url },
+          "image": { "alt": coalesce(image.alt, alt), "url": image.asset->url },
+          "principal": { "label": coalesce(principal.label, principal.texte, boutonPrincipal.texte, boutonPrincipal.label), "href": coalesce(principal.href, principal.lien, boutonPrincipal.lien, boutonPrincipal.href) },
+          "secondaire": { "label": coalesce(secondaire.label, secondaire.texte, boutonSecondaire.texte, boutonSecondaire.label), "href": coalesce(secondaire.href, secondaire.lien, boutonSecondaire.lien, boutonSecondaire.href) }
+        }`, {}, { signal: controller.signal }).then(accueilData => {
+          if (accueilData) setContent(mergeContent(defaults, { accueil: accueilData }));
+        }).catch(() => {});
+      } else {
+        if (!data.accueil || (!data.accueil.titre && !data.accueil.image?.url)) {
+          client.fetch(`*[_type == "accueil"] | order(_updatedAt desc)[0] {
+            surtitre, titre, titreSuite, accent, description,
+            "logo": { "alt": coalesce(logo.alt, alt), "url": logo.asset->url },
+            "image": { "alt": coalesce(image.alt, alt), "url": image.asset->url },
+            "principal": { "label": coalesce(principal.label, principal.texte, boutonPrincipal.texte, boutonPrincipal.label), "href": coalesce(principal.href, principal.lien, boutonPrincipal.lien, boutonPrincipal.href) },
+            "secondaire": { "label": coalesce(secondaire.label, secondaire.texte, boutonSecondaire.texte, boutonSecondaire.label), "href": coalesce(secondaire.href, secondaire.lien, boutonSecondaire.lien, boutonSecondaire.href) }
+          }`, {}, { signal: controller.signal }).then(accueilData => {
+            if (accueilData) {
+              setContent(mergeContent(defaults, { ...data, accueil: { ...defaults.accueil, ...accueilData } }));
+            } else {
+              setContent(mergeContent(defaults, data));
+            }
+          }).catch(() => {
+            setContent(mergeContent(defaults, data));
+          });
+        } else {
+          setContent(mergeContent(defaults, data));
+        }
+      }
     }).catch(error => {
       if (error.name !== 'AbortError') console.warn('Sanity indisponible : contenu local affiché.');
     });
@@ -122,15 +155,76 @@ function HomePage() {
       behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
 
-  const sendRequest = event => {
+  const emailjsServiceId = formulaire.emailjsServiceId || process.env.REACT_APP_EMAILJS_SERVICE_ID || 'service_xe1h166';
+  const emailjsTemplateId = formulaire.emailjsTemplateId || process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+  const emailjsPublicKey = formulaire.emailjsPublicKey || process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+  const emailjsConfigured = Boolean(emailjsServiceId && emailjsTemplateId && emailjsPublicKey);
+  const canContact = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.emailDestinataire) || emailjsConfigured;
+
+  const sendRequest = async event => {
     event.preventDefault();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.emailDestinataire)) return;
-    const data = new FormData(event.currentTarget);
-    const body = ['nom', 'prenom', 'email', 'tel', 'cal', 'message']
-      .map(key => `${formulaire[key]} : ${(key === 'cal' ? selectedCircle?.nom : data.get(key)) || '—'}`).join('\n\n');
-    window.location.href = `mailto:${encodeURIComponent(formulaire.emailDestinataire)}?subject=${encodeURIComponent(formulaire.titre)}&body=${encodeURIComponent(body)}`;
+    const formElement = event.currentTarget;
+    const data = new FormData(formElement);
+
+    const circleName = (selectedCircle ? `${selectedCircle.nom}${selectedCircle.ville ? ` — ${selectedCircle.ville}` : ''}` : '') || 'Non précisé';
+
+    if (emailjsConfigured) {
+      setFormStatus({ state: 'sending', message: '' });
+      try {
+        const templateParams = {
+          service_id: emailjsServiceId,
+          nom: data.get('nom') || '',
+          prenom: data.get('prenom') || '',
+          name: `${data.get('prenom') || ''} ${data.get('nom') || ''}`.trim(),
+          user_name: `${data.get('prenom') || ''} ${data.get('nom') || ''}`.trim(),
+          from_name: `${data.get('prenom') || ''} ${data.get('nom') || ''}`.trim(),
+          email: data.get('email') || '',
+          user_email: data.get('email') || '',
+          reply_to: data.get('email') || '',
+          tel: data.get('tel') || 'Non renseigné',
+          phone: data.get('tel') || 'Non renseigné',
+          user_phone: data.get('tel') || 'Non renseigné',
+          cal: circleName,
+          cercle: circleName,
+          circle: circleName,
+          message: data.get('message') || '',
+          sujet: `Demande d'adhésion - ${circleName}`,
+          subject: `Demande d'adhésion - ${circleName}`,
+          date: new Date().toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        };
+
+        await emailjs.send(emailjsServiceId, emailjsTemplateId, templateParams, {
+          publicKey: emailjsPublicKey,
+        });
+
+        setFormStatus({
+          state: 'success',
+          message: formulaire.succesMessage || 'Votre demande d’adhésion a été transmise avec succès ! Nous vous recontacterons très rapidement.',
+        });
+        formElement.reset();
+        setSelectedCircleId('');
+      } catch (error) {
+        console.error('Erreur EmailJS:', error);
+        setFormStatus({
+          state: 'error',
+          message: formulaire.erreurMessage || 'Une erreur est survenue lors de l’envoi. Veuillez réessayer ou contacter le secrétariat.',
+        });
+      }
+      return;
+    }
+
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.emailDestinataire)) {
+      const body = ['nom', 'prenom', 'email', 'tel', 'cal', 'message']
+        .map(key => `${formulaire[key]} : ${(key === 'cal' ? circleName : data.get(key)) || '—'}`).join('\n\n');
+      window.location.href = `mailto:${encodeURIComponent(formulaire.emailDestinataire)}?subject=${encodeURIComponent(formulaire.titre)}&body=${encodeURIComponent(body)}`;
+    }
   };
-  const canContact = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.emailDestinataire);
 
   return <div className="App">
     <a className="skipLink" href="#contenu">Aller au contenu</a>
@@ -153,20 +247,7 @@ function HomePage() {
       </div>
     </nav>
     <main id="contenu">
-      <section className="Acceuil" id="acceuil" aria-labelledby="accueil-title">
-        <div className="section">
-          <div className="aside">
-            <p className="surtitre">{accueil.surtitre}</p>
-            <h1 className="title" id="accueil-title">{accueil.titre}<br />{accueil.titreSuite} <span>{accueil.accent}</span></h1>
-            <p className="description">{accueil.description}</p>
-            <div className="bouton">
-              <ContentLink className="btn btnPlein" value={accueil.principal} arrow="↓" />
-              <ContentLink className="btn btnOut" value={accueil.secondaire} arrow="↓" />
-            </div>
-          </div>
-          <img src={accueil.image?.url || HeroImage} alt={accueil.image?.alt || accueil.imageAlt} fetchPriority="high" />
-        </div>
-      </section>
+      <Acceuil content={accueil} />
       <section className="manifest" id="manifest" aria-labelledby="manifest-title">
         <SectionTitle content={manifeste} id="manifest-title" />
         <div className="lient">{manifeste.principes.map((item, index) =>
@@ -213,7 +294,7 @@ function HomePage() {
               </article>
             ))
           ) : (
-            <div role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '220px', width: '100%', color: '#64748b' }}>
+            <div aria-live="polite" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '220px', width: '100%', color: '#64748b' }}>
               <span aria-hidden="true" style={{ width: '1.25rem', height: '1.25rem', border: '3px solid #cbd5e1', borderTopColor: '#0f172a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               Chargement des articles…
             </div>
@@ -223,17 +304,20 @@ function HomePage() {
       <section className="Territoire" id="Territoire" aria-labelledby="territoires-title">
         <SectionTitle content={territoires} id="territoires-title" />
         <div className="elementContent">
-          <div style={{ position: 'relative' }} aria-busy="true">
-            {officialArticles.length === 0 && (
-              <p role="status" aria-live="polite" style={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 0, background: '#f8fafc', color: '#64748b', fontWeight: 600 }}>
-                Chargement de la carte de France…
-              </p>
-            )}
-            <FranceMap circles={circles} selectedId={selectedCircle?.id || ''} onSelect={setSelectedCircleId} label={territoires.carteAlt} />
-          </div>
+          <FranceMap circles={circles} selectedId={selectedCircle?.id || ''} onSelect={setSelectedCircleId} label={territoires.carteAlt} />
           <form className="Formulaire" id="contact" onSubmit={sendRequest} aria-labelledby="form-title" aria-describedby="form-info">
             <p className="surtitre">{formulaire.surtitre}</p>
             <h2 id="form-title">{formulaire.titre}</h2><p>{formulaire.description}</p>
+            {formStatus.state === 'success' && (
+              <p className="formSuccess" role="status" style={{ borderRadius: '6px', marginBottom: '1rem' }}>
+                {formStatus.message}
+              </p>
+            )}
+            {formStatus.state === 'error' && (
+              <p className="formError" role="alert" style={{ borderRadius: '6px', marginBottom: '1rem' }}>
+                {formStatus.message}
+              </p>
+            )}
             <div className="form">
               {[['nom', 'prenom'], ['email', 'tel']].map((row, index) => <div className="plat" key={index}>
                 {row.map(name => <div key={name}><label htmlFor={name}>{formulaire[name]}</label>
@@ -249,7 +333,10 @@ function HomePage() {
               </div>
               <label htmlFor="message">{formulaire.message}</label><textarea id="message" name="message" rows="5" maxLength={2500} required />
               <p className="formInfo" id="form-info">{canContact ? formulaire.information : formulaire.indisponible}</p>
-              <button className="btn btnPlein" type="submit" disabled={!canContact}>{formulaire.envoyer}<span aria-hidden="true">↓</span></button>
+              <button className="btn btnPlein" type="submit" disabled={!canContact || formStatus.state === 'sending'}>
+                {formStatus.state === 'sending' ? (formulaire.envoiEnCours || 'Envoi en cours…') : formulaire.envoyer}
+                <span aria-hidden="true">↓</span>
+              </button>
             </div>
           </form>
         </div>
@@ -268,32 +355,32 @@ function HomePage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
             {selectedArticle.kicker && (
-              <span style={{ fontWeight: '800', letterSpacing: '0.08em', color: '#b91c1c', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+              <span style={{ fontWeight: '800', letterSpacing: '0.08em', color: '#8d2631', fontSize: '0.85rem', textTransform: 'uppercase' }}>
                 {selectedArticle.kicker}
               </span>
             )}
             {selectedArticle.location && (
-              <span style={{ background: '#f1f5f9', color: '#0f172a', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+              <span style={{ background: '#0b1729', color: '#fbf9f4', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
                 📍 {selectedArticle.location}
               </span>
             )}
-            <span style={{ color: '#64748b', fontSize: '0.82rem' }}>· {selectedArticle.category || selectedArticle.categorie || 'Gazette'}</span>
+            <span style={{ color: '#4e5a60', fontSize: '0.82rem' }}>· {selectedArticle.category || selectedArticle.categorie || 'Gazette'}</span>
             {selectedArticle.readingTime && (
-              <span style={{ color: '#64748b', fontSize: '0.82rem' }}>· ⏱ Lecture {selectedArticle.readingTime} min</span>
+              <span style={{ color: '#4e5a60', fontSize: '0.82rem' }}>· ⏱ Lecture {selectedArticle.readingTime} min</span>
             )}
           </div>
 
-          <h2 id="article-title" style={{ fontSize: '2.1rem', lineHeight: '1.25', margin: '0 0 0.6rem', fontFamily: 'serif' }}>
+          <h2 id="article-title" style={{ fontSize: '2.1rem', lineHeight: '1.25', margin: '0 0 0.6rem', fontFamily: 'serif', color: '#0b1729' }}>
             {selectedArticle.title || selectedArticle.titre}
           </h2>
 
           {selectedArticle.subtitle && (
-            <p style={{ fontSize: '1.15rem', lineHeight: '1.45', color: '#475569', fontStyle: 'italic', margin: '0 0 1rem' }}>
+            <p style={{ fontSize: '1.15rem', lineHeight: '1.45', color: '#4e5a60', fontStyle: 'italic', margin: '0 0 1rem' }}>
               {selectedArticle.subtitle}
             </p>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.3rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', paddingBottom: '1rem', borderBottom: '1px solid #d9d4c8', marginBottom: '1.3rem' }}>
             {selectedArticle.authorAvatar?.url && (
               <img
                 src={selectedArticle.authorAvatar.url}
@@ -302,10 +389,10 @@ function HomePage() {
               />
             )}
             <div>
-              <p style={{ margin: 0, fontWeight: '700', fontSize: '0.95rem' }}>
+              <p style={{ margin: 0, fontWeight: '700', fontSize: '0.95rem', color: '#0b1729' }}>
                 Par {selectedArticle.authorName || 'La rédaction'}
               </p>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#4e5a60' }}>
                 {selectedArticle.authorRole ? `${selectedArticle.authorRole} · ` : ''}Publié le {formatDate(selectedArticle.officialPublishedAt || selectedArticle._createdAt)}
               </p>
             </div>
@@ -319,7 +406,7 @@ function HomePage() {
                 style={{ width: '100%', borderRadius: '8px', objectFit: 'cover', maxHeight: '420px' }}
               />
               {(selectedArticle.image.caption || selectedArticle.image.credit) && (
-                <figcaption style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <figcaption style={{ fontSize: '0.82rem', color: '#4e5a60', marginTop: '0.4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <span>{selectedArticle.image.caption}</span>
                   {selectedArticle.image.credit && <span>© {selectedArticle.image.credit}</span>}
                 </figcaption>
@@ -328,17 +415,17 @@ function HomePage() {
           )}
 
           {selectedArticle.excerpt && (
-            <div style={{ fontSize: '1.18rem', fontWeight: '500', lineHeight: '1.65', color: '#0f172a', paddingLeft: '1.1rem', borderLeft: '4px solid #b91c1c', marginBottom: '1.6rem' }}>
+            <div style={{ fontSize: '1.18rem', fontWeight: '500', lineHeight: '1.65', color: '#0b1729', paddingLeft: '1.1rem', borderLeft: '4px solid #8d2631', marginBottom: '1.6rem' }}>
               {selectedArticle.excerpt}
             </div>
           )}
 
           {selectedArticle.factbox && (selectedArticle.factbox.title || (Array.isArray(selectedArticle.factbox.items) && selectedArticle.factbox.items.length > 0)) && (
-            <aside style={{ margin: '1.5rem 0', padding: '1.2rem 1.4rem', background: '#f8fafc', borderTop: '3px solid #0284c7', borderRadius: '6px' }}>
-              <h4 style={{ margin: '0 0 0.6rem', color: '#0369a1', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <aside style={{ margin: '1.5rem 0', padding: '1.2rem 1.4rem', background: '#f4eee3', border: '1px solid #d9d4c8', borderTop: '3px solid #8d2631', borderRadius: '6px' }}>
+              <h4 style={{ margin: '0 0 0.6rem', color: '#8d2631', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 📌 {selectedArticle.factbox.title || 'Repères'}
               </h4>
-              <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.7', color: '#334155' }}>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.7', color: '#2b363c' }}>
                 {(selectedArticle.factbox.items || []).map((item, idx) => (
                   <li key={idx} style={{ marginBottom: '0.4rem' }}>{item}</li>
                 ))}
@@ -347,28 +434,28 @@ function HomePage() {
           )}
 
           {selectedArticle.quote?.text && (
-            <blockquote style={{ margin: '1.8rem 0', padding: '1.2rem 1.6rem', background: '#f8fafc', borderLeft: '4px solid #0f172a', borderRadius: '4px', fontStyle: 'italic', fontSize: '1.15rem' }}>
+            <blockquote style={{ margin: '1.8rem 0', padding: '1.2rem 1.6rem', background: '#f4eee3', borderLeft: '4px solid #8d2631', borderRadius: '4px', fontStyle: 'italic', fontSize: '1.15rem', color: '#0b1729' }}>
               « {selectedArticle.quote.text} »
               {selectedArticle.quote.author && (
-                <cite style={{ display: 'block', fontSize: '0.88rem', color: '#64748b', marginTop: '0.5rem', fontStyle: 'normal' }}>
+                <cite style={{ display: 'block', fontSize: '0.88rem', color: '#4e5a60', marginTop: '0.5rem', fontStyle: 'normal' }}>
                   — {selectedArticle.quote.author}
                 </cite>
               )}
             </blockquote>
           )}
 
-          <div style={{ whiteSpace: 'pre-line', lineHeight: '1.9', fontSize: '1.08rem', color: '#334155' }}>
+          <div style={{ whiteSpace: 'pre-line', lineHeight: '1.9', fontSize: '1.08rem', color: '#2b363c' }}>
             {selectedArticle.body || selectedArticle.description}
           </div>
 
           {Array.isArray(selectedArticle.gallery) && selectedArticle.gallery.length > 0 && (
-            <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>📸 En images</h4>
+            <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #d9d4c8' }}>
+              <h4 style={{ margin: '0 0 1rem', fontSize: '1.1rem', color: '#0b1729' }}>📸 En images</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                 {selectedArticle.gallery.map((img, idx) => (
                   <figure key={idx} style={{ margin: 0 }}>
                     <img src={img.url} alt={img.alt || `Photo ${idx + 1}`} style={{ width: '100%', borderRadius: '6px', height: '180px', objectFit: 'cover' }} />
-                    {img.caption && <figcaption style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.3rem' }}>{img.caption}</figcaption>}
+                    {img.caption && <figcaption style={{ fontSize: '0.78rem', color: '#4e5a60', marginTop: '0.3rem' }}>{img.caption}</figcaption>}
                   </figure>
                 ))}
               </div>
@@ -376,10 +463,10 @@ function HomePage() {
           )}
 
           {Array.isArray(selectedArticle.tags) && selectedArticle.tags.length > 0 && (
-            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>Mots-clés :</span>
+            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #d9d4c8', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#4e5a60' }}>Mots-clés :</span>
               {selectedArticle.tags.map((tag, idx) => (
-                <span key={idx} style={{ fontSize: '0.78rem', background: '#f1f5f9', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#334155' }}>
+                <span key={idx} style={{ fontSize: '0.78rem', background: '#eee9de', border: '1px solid #d9d4c8', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#2b363c' }}>
                   #{tag}
                 </span>
               ))}
