@@ -213,16 +213,24 @@ function HomePage() {
               </article>
             ))
           ) : (
-            <p style={{ padding: '2.5rem 1rem', color: '#64748b', fontStyle: 'italic', textAlign: 'center', width: '100%' }}>
-              Aucun article Sanity publié sur la page principale pour le moment.
-            </p>
+            <div role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '220px', width: '100%', color: '#64748b' }}>
+              <span aria-hidden="true" style={{ width: '1.25rem', height: '1.25rem', border: '3px solid #cbd5e1', borderTopColor: '#0f172a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              Chargement des articles…
+            </div>
           )}
         </div>
       </section>
       <section className="Territoire" id="Territoire" aria-labelledby="territoires-title">
         <SectionTitle content={territoires} id="territoires-title" />
         <div className="elementContent">
-          <FranceMap circles={circles} selectedId={selectedCircle?.id || ''} onSelect={setSelectedCircleId} label={territoires.carteAlt} />
+          <div style={{ position: 'relative' }} aria-busy="true">
+            {officialArticles.length === 0 && (
+              <p role="status" aria-live="polite" style={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 0, background: '#f8fafc', color: '#64748b', fontWeight: 600 }}>
+                Chargement de la carte de France…
+              </p>
+            )}
+            <FranceMap circles={circles} selectedId={selectedCircle?.id || ''} onSelect={setSelectedCircleId} label={territoires.carteAlt} />
+          </div>
           <form className="Formulaire" id="contact" onSubmit={sendRequest} aria-labelledby="form-title" aria-describedby="form-info">
             <p className="surtitre">{formulaire.surtitre}</p>
             <h2 id="form-title">{formulaire.titre}</h2><p>{formulaire.description}</p>
