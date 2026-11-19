@@ -82,4 +82,93 @@ export function safeHref(value) {
     ? value.trim() : undefined;
 }
 
+/**
+ * Optimise une URL d'image Sanity CDN avec WebP/AVIF automatique, compression et redimensionnement.
+ */
+export function getOptimizedImageUrl(url, { width, height, quality = 75, fit = 'max' } = {}) {
+  if (!url || typeof url !== 'string') return '';
+  if (!url.includes('cdn.sanity.io')) return url;
+
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('auto', 'format');
+    if (quality) urlObj.searchParams.set('q', String(quality));
+    if (width) urlObj.searchParams.set('w', String(width));
+    if (height) urlObj.searchParams.set('h', String(height));
+    if (fit) urlObj.searchParams.set('fit', fit);
+    return urlObj.toString();
+  } catch {
+    const sep = url.includes('?') ? '&' : '?';
+    const params = ['auto=format'];
+    if (quality) params.push(`q=${quality}`);
+    if (width) params.push(`w=${width}`);
+    if (height) params.push(`h=${height}`);
+    if (fit) params.push(`fit=${fit}`);
+    return `${url}${sep}${params.join('&')}`;
+  }
+}
+
+/**
+ * Génère un attribut srcSet réactif pour les différentes résolutions d'écran.
+ */
+export function getOptimizedSrcSet(url, widths = [320, 480, 768, 1024]) {
+  if (!url || typeof url !== 'string' || !url.includes('cdn.sanity.io')) return undefined;
+  return widths
+    .map(w => `${getOptimizedImageUrl(url, { width: w, quality: 75 })} ${w}w`)
+    .join(', ');
+}
+
+const SITE_CONTENT_CACHE_KEY = 'cal_site_content_cache';
+const ARTICLES_CACHE_KEY = 'cal_official_articles_cache';
+
+/**
+ * Récupère le contenu du site mis en cache localement (SWR).
+ */
+export function getCachedContent() {
+  if (typeof window === 'undefined' || !window.localStorage) return defaults;
+  try {
+    const cached = window.localStorage.getItem(SITE_CONTENT_CACHE_KEY);
+    if (cached) {
+      const data = JSON.parse(cached);
+      return mergeContent(defaults, data);
+    }
+  } catch {}
+  return defaults;
+}
+
+/**
+ * Sauvegarde le contenu du site dans le cache local.
+ */
+export function setCachedContent(data) {
+  if (typeof window === 'undefined' || !window.localStorage || !data) return;
+  try {
+    window.localStorage.setItem(SITE_CONTENT_CACHE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+/**
+ * Récupère les articles officiels mis en cache localement (SWR).
+ */
+export function getCachedArticles() {
+  if (typeof window === 'undefined' || !window.localStorage) return [];
+  try {
+    const cached = window.localStorage.getItem(ARTICLES_CACHE_KEY);
+    if (cached) {
+      const list = JSON.parse(cached);
+      if (Array.isArray(list) && list.length > 0) return list;
+    }
+  } catch {}
+  return [];
+}
+
+/**
+ * Sauvegarde les articles officiels dans le cache local.
+ */
+export function setCachedArticles(articles) {
+  if (typeof window === 'undefined' || !window.localStorage || !Array.isArray(articles)) return;
+  try {
+    window.localStorage.setItem(ARTICLES_CACHE_KEY, JSON.stringify(articles));
+  } catch {}
+}
+
 export { defaults };

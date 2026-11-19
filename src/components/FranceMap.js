@@ -1,4 +1,5 @@
 import { franceRings, hasMapCoordinates, projectCoordinates } from '../content/franceGeometry';
+import { getOptimizedImageUrl } from '../content/siteContent';
 
 const outline = franceRings.map(ring => ring.map(([lng, lat], index) =>
   `${index ? 'L' : 'M'}${projectCoordinates(lng, lat).join(',')}`
@@ -20,7 +21,17 @@ export default function FranceMap({ circles, selectedId, onSelect, label }) {
           key={circle.id} type="button" style={{ left: `${x / 6}%`, top: `${y / 6}%` }}
           aria-label={`Choisir ${circle.nom}${circle.ville ? ` — ${circle.ville}` : ''}`}
           aria-pressed={selectedId === circle.id} aria-controls="cal" onClick={() => onSelect(circle.id)}>
-          {circle.logo?.url ? <img src={circle.logo.url} alt="" onError={event => { event.currentTarget.hidden = true; }} /> : null}
+          {circle.logo?.url ? (
+            <img
+              src={getOptimizedImageUrl(circle.logo.url, { width: 64, height: 64, quality: 75, fit: 'crop' })}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              width="32"
+              height="32"
+              onError={event => { event.currentTarget.hidden = true; }}
+            />
+          ) : null}
           <span className="markerFallback" aria-hidden="true">⚜</span>
           <span className="markerLabel">{circle.ville || circle.nom}</span>
         </button>;

@@ -3,7 +3,7 @@ import { client } from './SanityConnect';
 import './App.scss';
 import HeroImage from './Image/hero.jpg';
 import defaults from './content/defaultContent.json';
-import { safeHref } from './content/siteContent';
+import { safeHref, getOptimizedImageUrl } from './content/siteContent';
 
 export const accueilQuery = `*[_type == "accueil"] | order(_updatedAt desc)[0] {
   surtitre,
@@ -89,9 +89,10 @@ function Acceuil({ content }) {
         <div className="aside">
           {accueilData.logo?.url && (
             <img
-              src={accueilData.logo.url}
+              src={getOptimizedImageUrl(accueilData.logo.url, { width: 240, quality: 85 })}
               alt={accueilData.logo.alt || ''}
               className="heroLogo"
+              decoding="async"
               style={{ maxHeight: '56px', width: 'auto', marginBottom: '1.25rem', objectFit: 'contain' }}
             />
           )}
@@ -122,9 +123,10 @@ function Acceuil({ content }) {
         </div>
 
         <img
-          src={accueilData.image?.url || HeroImage}
+          src={getOptimizedImageUrl(accueilData.image?.url, { width: 1200, quality: 80 }) || HeroImage}
           alt={accueilData.image?.alt || accueilData.imageAlt || "Illustration du Cercle d’action légitimiste"}
           fetchPriority="high"
+          decoding="async"
         />
       </div>
     </section>
