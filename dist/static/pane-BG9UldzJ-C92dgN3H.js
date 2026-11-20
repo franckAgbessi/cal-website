@@ -1,1 +1,0 @@
-export{a as default}from"./sanity-CXWtI5_D.js";

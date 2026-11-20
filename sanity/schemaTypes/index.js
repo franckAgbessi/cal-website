@@ -1,6 +1,7 @@
 import { accueil } from './accueil';
-import { calArticle } from './calArticle';
-import { calMember } from './calMember';
-import { calSite } from './calSite';
+import { article } from './articles';
+import { auteur } from './auteurs';
+import { categorie } from './categories';
+import { evenement } from './evenements';
 
-export const schemaTypes = [calSite, accueil, calArticle, calMember];
+export const schemaTypes = [accueil, article, auteur, categorie, evenement];

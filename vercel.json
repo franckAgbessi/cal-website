@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/cal", "destination": "/index.html" },
-    { "source": "/activer-compte", "destination": "/index.html" }
+    { "source": "/activer-compte", "destination": "/index.html" },
+    { "source": "/actualites", "destination": "/index.html" },
+    { "source": "/actualites/:slug", "destination": "/index.html" }
   ]
 }

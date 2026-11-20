@@ -27,7 +27,22 @@ REACT_APP_SANITY_DATASET=production
 # Token Sanity avec droits d'écriture (Editor ou Write)
 # Nécessaire pour permettre la création de comptes membres et le téléversement d'articles
 REACT_APP_SANITY_WRITE_TOKEN=votre-token-sanity-write
+
+# Optionnel : le frontend utilise uniquement ce client en lecture
+REACT_APP_SANITY_API_VERSION=2024-01-01
 ```
+
+## Administration éditoriale
+
+Le Studio Sanity contient les documents suivants :
+
+- **Page d’accueil** : singleton `accueil`, avec activation indépendante des sections, textes, médias, liens et sélections.
+- **Article** : contenu Portable Text, publication, médias, auteur, catégorie, SEO et articles associés.
+- **Auteur**, **Catégorie** et **Événement** : documents réutilisables référencés par les articles et la page d’accueil.
+
+Lancez le Studio avec `npm run sanity`, puis créez un document **Page d’accueil** et publiez-le. Les articles publiés avec le statut `Publié` apparaissent automatiquement dans la page d’accueil et sur `/actualites`. Un article est accessible via `/actualites/<slug>`.
+
+Le frontend ne lit jamais le token d'écriture. Ne définissez `REACT_APP_SANITY_WRITE_TOKEN` que pour les outils qui en ont réellement besoin et ne le publiez jamais côté navigateur.
 
 ---
 

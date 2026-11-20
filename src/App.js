@@ -1,502 +1,296 @@
-import { useEffect, useRef, useState } from 'react';
-import emailjs from '@emailjs/browser';
+import { useEffect, useState } from 'react';
 import './App.scss';
-import LogoImage from './Image/logo.png';
-import FranceMap from './components/FranceMap';
-import { client } from './SanityConnect';
-import { defaults, mergeContent, safeHref, siteQuery } from './content/siteContent';
-import CalGazette from './CalGazette';
-import Acceuil from './Acceuil';
-import { fetchOfficialArticles } from './calApi';
-import { getInviteSession } from './calApi';
-import ActivateAccount from './ActivateAccount';
+import heroImage from './Image/hero1.png';
+import logoImage from './Image/logo.png';
+import { client, homeQuery, articleListQuery, articleBySlugQuery } from './SanityConnect';
+
+const defaultContent = {
+  hero: {
+    eyebrow: 'Cercle d’Action Légitimiste de Toulouse',
+    title: 'Occitan Royaliste',
+    text: 'Faire vivre l’histoire, transmettre notre héritage et cultiver la mémoire du royaume de France.',
+  },
+  presentation: {
+    title: 'Un héritage, une histoire, une transmission.',
+    text: 'Le Cercle d’Action Légitimiste de Toulouse est un lieu de rencontre, d’étude et de transmission. Nous réunissons celles et ceux qui souhaitent mieux connaître l’histoire de France et le patrimoine occitan.',
+  },
+  missions: {
+    visible: true,
+    title: 'Nos engagements',
+    description: 'Étudier, partager et transmettre une mémoire vivante.',
+  },
+  actualites: { visible: true, title: 'Dernières publications', description: 'Chroniques et études du cercle.' },
+  evenements: { visible: true, title: 'Les prochains événements', description: 'Conférences, rencontres et visites autour de l’histoire et du patrimoine.' },
+  appel: { visible: true, title: 'Rejoindre le cercle', text: 'Vous souhaitez participer à nos travaux, nos rencontres ou simplement en savoir davantage ? Écrivez-nous.' },
+  history: [
+    { number: '01', title: 'La monarchie française', text: 'Comprendre la continuité historique de la monarchie et la place qu’elle occupe dans la mémoire nationale.' },
+    { number: '02', title: 'Les Capétiens', text: 'Une dynastie, un royaume : parcourir les siècles qui ont façonné la France.' },
+    { number: '03', title: 'Toulouse et l’Occitanie', text: 'Redécouvrir les villes, les lignées et les monuments qui composent notre héritage méridional.' },
+  ],
+};
+
+const articles = [
+  { category: 'Démonstration', title: 'Les publications du cercle', date: 'Contenu de démonstration', text: 'Les articles publiés depuis Sanity apparaîtront automatiquement dans cette rubrique.' },
+];
 
 function formatDate(value) {
-  return value
-    ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value))
-    : 'Aujourd’hui';
+  if (!value) return 'Date à venir';
+  return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value));
 }
 
-function ContentLink({ value, className, arrow, onClick }) {
-  const href = safeHref(value?.href || value?.lien);
-  if (!href) return null;
-  const external = /^https?:/i.test(href);
-  const label = value?.label || value?.texte;
-  return <a className={className} href={href} onClick={onClick}
-    target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>
-    {label}{arrow && <span aria-hidden="true">{arrow}</span>}
-  </a>;
+function portableTextToString(value) {
+  if (typeof value === 'string') return value;
+  if (!Array.isArray(value)) return '';
+  return value.flatMap(block => block.children || []).map(child => child.text || '').join(' ');
 }
 
-function SectionTitle({ content, id }) {
-  return <>
-    <p className="UpTitle">{content.surtitre}</p>
-    <div className="elementTitle">
-      <h2 className="title" id={id}>{content.titre}
-        {content.titreSuite && <><br />{content.titreSuite} <span>{content.accent}</span></>}
-      </h2>
-      {content.description && <p>{content.description}</p>}
+function ArticlePage({ article, loading, onBack }) {
+  if (loading) return <main className="article-loading"><p className="eyebrow dark">Occitan Royaliste</p><h1>Chargement de l’article…</h1></main>;
+  if (!article) return <main className="not-found"><p className="eyebrow dark">404</p><h1>Article introuvable.</h1><a className="text-link" href="/actualites">Retour aux actualités <span>↗</span></a></main>;
+  return <main className="article-page">
+    <div className="article-page-inner"><a className="text-link" href="/actualites" onClick={onBack}>← Toutes les actualités</a>
+      <p className="eyebrow dark article-page-category">{article.category?.title || 'Actualités'}</p><h1>{article.title}</h1>
+      {article.subtitle && <p className="article-page-subtitle">{article.subtitle}</p>}
+      <p className="article-byline">Par {article.author?.name || 'La rédaction'} · {formatDate(article.publishedAt)} · {article.readingTime || '—'} min de lecture</p>
+      {article.coverUrl && <figure><img src={article.coverUrl} alt={article.caption || article.title} /><figcaption>{article.caption}{article.credit && ` — ${article.credit}`}</figcaption></figure>}
+      <div className="article-body">{(article.body || []).map((block, index) => {
+        if (!block.children) return null;
+        const text = block.children.map(child => child.text).join('');
+        if (block.style === 'h2') return <h2 key={block._key || index}>{text}</h2>;
+        if (block.style === 'h3') return <h3 key={block._key || index}>{text}</h3>;
+        if (block.style === 'h4') return <h4 key={block._key || index}>{text}</h4>;
+        if (block.style === 'blockquote') return <blockquote key={block._key || index}>{text}</blockquote>;
+        return <p key={block._key || index}>{text}</p>;
+      })}</div>
     </div>
-  </>;
-}
-
-function PrincipleCard({ item, index }) {
-  const title = (item.titre || '').replace(/^\d+\s*[.\-–—/]?\s*/, '');
-  const text = (item.texte || '').trim();
-  const [introduction, ...points] = text.split(/\s+–\s+/);
-  const paragraphs = introduction.split(/\n\s*\n/).filter(Boolean);
-  if (paragraphs.length === 1) {
-    const end = introduction.indexOf('. ');
-    if (end !== -1) paragraphs.splice(0, 1, introduction.slice(0, end + 1), introduction.slice(end + 2));
-  }
-  return <article className="secElement">
-    <div className="principleHeading">
-      <span className="principleNumber" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-      <h3>{title}</h3>
-    </div>
-    <div className="principleBody">
-      {paragraphs.map((paragraph, paragraphIndex) => <p key={paragraphIndex} className={paragraphIndex === 0 ? 'principleLead' : undefined}>{paragraph}</p>)}
-      {points.length > 0 && <ul>{points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}</ul>}
-    </div>
-  </article>;
-}
-
-function HomePage() {
-  const [content, setContent] = useState(defaults);
-  const [officialArticles, setOfficialArticles] = useState([]);
-  const [selectedCircleId, setSelectedCircleId] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState(null);
-  const [carouselState, setCarouselState] = useState({ start: true, end: false });
-  const [formStatus, setFormStatus] = useState({ state: 'idle', message: '' });
-  const carouselRef = useRef(null);
-  const { navigation, accueil, manifeste, journal, territoires, formulaire, footer } = content;
-
-  const circles = territoires.cercles.filter(circle => circle?.nom).map((circle, index) => ({
-    ...circle, id: circle._key || `circle-${index}`,
-  }));
-  const selectedCircle = circles.find(circle => circle.id === selectedCircleId);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    client.fetch(siteQuery, {}, { signal: controller.signal }).then(data => {
-      if (!data) {
-        client.fetch(`*[_type == "accueil"] | order(_updatedAt desc)[0] {
-          surtitre, titre, titreSuite, accent, description,
-          "logo": { "alt": coalesce(logo.alt, alt), "url": logo.asset->url },
-          "image": { "alt": coalesce(image.alt, alt), "url": image.asset->url },
-          "principal": { "label": coalesce(principal.label, principal.texte, boutonPrincipal.texte, boutonPrincipal.label), "href": coalesce(principal.href, principal.lien, boutonPrincipal.lien, boutonPrincipal.href) },
-          "secondaire": { "label": coalesce(secondaire.label, secondaire.texte, boutonSecondaire.texte, boutonSecondaire.label), "href": coalesce(secondaire.href, secondaire.lien, boutonSecondaire.lien, boutonSecondaire.href) }
-        }`, {}, { signal: controller.signal }).then(accueilData => {
-          if (accueilData) setContent(mergeContent(defaults, { accueil: accueilData }));
-        }).catch(() => {});
-      } else {
-        if (!data.accueil || (!data.accueil.titre && !data.accueil.image?.url)) {
-          client.fetch(`*[_type == "accueil"] | order(_updatedAt desc)[0] {
-            surtitre, titre, titreSuite, accent, description,
-            "logo": { "alt": coalesce(logo.alt, alt), "url": logo.asset->url },
-            "image": { "alt": coalesce(image.alt, alt), "url": image.asset->url },
-            "principal": { "label": coalesce(principal.label, principal.texte, boutonPrincipal.texte, boutonPrincipal.label), "href": coalesce(principal.href, principal.lien, boutonPrincipal.lien, boutonPrincipal.href) },
-            "secondaire": { "label": coalesce(secondaire.label, secondaire.texte, boutonSecondaire.texte, boutonSecondaire.label), "href": coalesce(secondaire.href, secondaire.lien, boutonSecondaire.lien, boutonSecondaire.href) }
-          }`, {}, { signal: controller.signal }).then(accueilData => {
-            if (accueilData) {
-              setContent(mergeContent(defaults, { ...data, accueil: { ...defaults.accueil, ...accueilData } }));
-            } else {
-              setContent(mergeContent(defaults, data));
-            }
-          }).catch(() => {
-            setContent(mergeContent(defaults, data));
-          });
-        } else {
-          setContent(mergeContent(defaults, data));
-        }
-      }
-    }).catch(error => {
-      if (error.name !== 'AbortError') console.warn('Sanity indisponible : contenu local affiché.');
-    });
-    return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchOfficialArticles(controller.signal).then(data => {
-      setOfficialArticles(Array.isArray(data) ? data : []);
-    }).catch(() => {
-      // The local journal remains available while the new article type is not deployed.
-    });
-    return () => controller.abort();
-  }, []);
-
-  // Uniquement les articles Sanity ayant l'option "Gazette ET Site principal" ou "Site principal uniquement"
-  const carouselArticles = officialArticles.filter(article =>
-    ['both', 'main', 'official'].includes(article?.publicationStatus)
-  );
-
-  useEffect(() => {
-    const carousel = carouselRef.current;
-    if (!carousel) return undefined;
-    const update = () => setCarouselState({
-      start: carousel.scrollLeft <= 2,
-      end: carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 2,
-    });
-    update();
-    carousel.addEventListener('scroll', update, { passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(carousel);
-    return () => { observer.disconnect(); carousel.removeEventListener('scroll', update); };
-  }, [carouselArticles.length]);
-
-  const scrollCarousel = direction => {
-    const carousel = carouselRef.current;
-    const article = carousel?.querySelector('article');
-    if (!article) return;
-    const gap = parseFloat(window.getComputedStyle(carousel).columnGap) || 0;
-    carousel.scrollBy({ left: direction * (article.getBoundingClientRect().width + gap),
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-  };
-
-  const emailjsServiceId = formulaire.emailjsServiceId || process.env.REACT_APP_EMAILJS_SERVICE_ID || 'service_xe1h166';
-  const emailjsTemplateId = formulaire.emailjsTemplateId || process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
-  const emailjsPublicKey = formulaire.emailjsPublicKey || process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
-  const emailjsConfigured = Boolean(emailjsServiceId && emailjsTemplateId && emailjsPublicKey);
-  const canContact = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.emailDestinataire) || emailjsConfigured;
-
-  const sendRequest = async event => {
-    event.preventDefault();
-    const formElement = event.currentTarget;
-    const data = new FormData(formElement);
-
-    const circleName = (selectedCircle ? `${selectedCircle.nom}${selectedCircle.ville ? ` — ${selectedCircle.ville}` : ''}` : '') || 'Non précisé';
-
-    if (emailjsConfigured) {
-      setFormStatus({ state: 'sending', message: '' });
-      try {
-        const templateParams = {
-          service_id: emailjsServiceId,
-          nom: data.get('nom') || '',
-          prenom: data.get('prenom') || '',
-          name: `${data.get('prenom') || ''} ${data.get('nom') || ''}`.trim(),
-          user_name: `${data.get('prenom') || ''} ${data.get('nom') || ''}`.trim(),
-          from_name: `${data.get('prenom') || ''} ${data.get('nom') || ''}`.trim(),
-          email: data.get('email') || '',
-          user_email: data.get('email') || '',
-          reply_to: data.get('email') || '',
-          tel: data.get('tel') || 'Non renseigné',
-          phone: data.get('tel') || 'Non renseigné',
-          user_phone: data.get('tel') || 'Non renseigné',
-          cal: circleName,
-          cercle: circleName,
-          circle: circleName,
-          message: data.get('message') || '',
-          sujet: `Demande d'adhésion - ${circleName}`,
-          subject: `Demande d'adhésion - ${circleName}`,
-          date: new Date().toLocaleDateString('fr-FR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-        };
-
-        await emailjs.send(emailjsServiceId, emailjsTemplateId, templateParams, {
-          publicKey: emailjsPublicKey,
-        });
-
-        setFormStatus({
-          state: 'success',
-          message: formulaire.succesMessage || 'Votre demande d’adhésion a été transmise avec succès ! Nous vous recontacterons très rapidement.',
-        });
-        formElement.reset();
-        setSelectedCircleId('');
-      } catch (error) {
-        console.error('Erreur EmailJS:', error);
-        setFormStatus({
-          state: 'error',
-          message: formulaire.erreurMessage || 'Une erreur est survenue lors de l’envoi. Veuillez réessayer ou contacter le secrétariat.',
-        });
-      }
-      return;
-    }
-
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.emailDestinataire)) {
-      const body = ['nom', 'prenom', 'email', 'tel', 'cal', 'message']
-        .map(key => `${formulaire[key]} : ${(key === 'cal' ? circleName : data.get(key)) || '—'}`).join('\n\n');
-      window.location.href = `mailto:${encodeURIComponent(formulaire.emailDestinataire)}?subject=${encodeURIComponent(formulaire.titre)}&body=${encodeURIComponent(body)}`;
-    }
-  };
-
-  return <div className="App">
-    <a className="skipLink" href="#contenu">Aller au contenu</a>
-    <nav aria-label="Navigation principale" onKeyDown={event => {
-      if (event.key === 'Escape') { setMenuOpen(false); document.getElementById('menu-toggle').focus(); }
-    }}>
-      <div className="navElement">
-        <div className="nav-left">
-          <a href="#acceuil" aria-label="Accueil"><img className="logo" src={navigation.logo?.url || LogoImage} alt={navigation.logo?.alt || navigation.logoAlt} /></a>
-          <div className={`navLink ${menuOpen ? 'isOpen' : ''}`} id="navigation-links">
-            {navigation.liens.map((link, index) => <ContentLink key={link._key || index} value={link} onClick={() => setMenuOpen(false)} />)}
-          </div>
-        </div>
-        <div className="navActions">
-          <ContentLink className="btnAder" value={navigation.adhesion} />
-          <ContentLink className="btnAder2" value={navigation.soutien} />
-        </div>
-        <button id="menu-toggle" className="menuToggle" type="button" aria-controls="navigation-links" aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Fermer' : 'Menu'}</button>
-      </div>
-    </nav>
-    <main id="contenu">
-      <Acceuil content={accueil} />
-      <section className="manifest" id="manifest" aria-labelledby="manifest-title">
-        <SectionTitle content={manifeste} id="manifest-title" />
-        <div className="lient">{manifeste.principes.map((item, index) =>
-          <PrincipleCard key={item._key || index} item={item} index={index} />
-        )}</div>
-      </section>
-      <section className="journal" id="journal" aria-labelledby="journal-title">
-        <div className="journalHeader">
-          <div><SectionTitle content={journal} id="journal-title" /></div>
-          <div className="carouselButtons">
-            <button type="button" onClick={() => scrollCarousel(-1)} aria-label={journal.precedent} aria-controls="articles" disabled={carouselState.start}>←</button>
-            <button type="button" onClick={() => scrollCarousel(1)} aria-label={journal.suivant} aria-controls="articles" disabled={carouselState.end}>→</button>
-          </div>
-        </div>
-        <div className="carouselArticle" id="articles" ref={carouselRef} tabIndex="0" role="region" aria-label={journal.titre}>
-          {carouselArticles.length > 0 ? (
-            carouselArticles.map((article, index) => (
-              <article
-                className="articleCard"
-                key={article._key || article._id || index}
-                onClick={() => setSelectedArticle(article)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="articleImage">
-                  {article.image?.url && <img src={article.image.url} alt={article.image.alt || article.title || ''} loading="lazy" />}
-                  <span>{article.category || 'Gazette'}</span>
-                </div>
-                <div className="articleContent">
-                  <div>
-                    <h3>{article.title || article.titre}</h3>
-                    <p>{article.excerpt || article.description || article.body}</p>
-                  </div>
-                  <button
-                    type="button"
-                    style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', padding: 0, textAlign: 'left', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedArticle(article);
-                    }}
-                  >
-                    {journal.lireArticle} <span aria-hidden="true">↓</span>
-                  </button>
-                </div>
-              </article>
-            ))
-          ) : (
-            <div aria-live="polite" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', minHeight: '220px', width: '100%', color: '#64748b' }}>
-              <span aria-hidden="true" style={{ width: '1.25rem', height: '1.25rem', border: '3px solid #cbd5e1', borderTopColor: '#0f172a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              Chargement des articles…
-            </div>
-          )}
-        </div>
-      </section>
-      <section className="Territoire" id="Territoire" aria-labelledby="territoires-title">
-        <SectionTitle content={territoires} id="territoires-title" />
-        <div className="elementContent">
-          <FranceMap circles={circles} selectedId={selectedCircle?.id || ''} onSelect={setSelectedCircleId} label={territoires.carteAlt} />
-          <form className="Formulaire" id="contact" onSubmit={sendRequest} aria-labelledby="form-title" aria-describedby="form-info">
-            <p className="surtitre">{formulaire.surtitre}</p>
-            <h2 id="form-title">{formulaire.titre}</h2><p>{formulaire.description}</p>
-            {formStatus.state === 'success' && (
-              <p className="formSuccess" role="status" style={{ borderRadius: '6px', marginBottom: '1rem' }}>
-                {formStatus.message}
-              </p>
-            )}
-            {formStatus.state === 'error' && (
-              <p className="formError" role="alert" style={{ borderRadius: '6px', marginBottom: '1rem' }}>
-                {formStatus.message}
-              </p>
-            )}
-            <div className="form">
-              {[['nom', 'prenom'], ['email', 'tel']].map((row, index) => <div className="plat" key={index}>
-                {row.map(name => <div key={name}><label htmlFor={name}>{formulaire[name]}</label>
-                  <input id={name} name={name} type={name === 'email' ? 'email' : name === 'tel' ? 'tel' : 'text'} required={name !== 'tel'} maxLength={160}
-                    autoComplete={{ nom: 'family-name', prenom: 'given-name', email: 'email', tel: 'tel' }[name]} />
-                </div>)}
-              </div>)}
-              <div className="all"><label htmlFor="cal">{formulaire.cal}</label>
-                <select id="cal" name="cal" value={selectedCircle?.id || ''} onChange={event => setSelectedCircleId(event.target.value)} required={circles.length > 0}>
-                  <option value="" disabled>{formulaire.choix}</option>
-                  {circles.map(cercle => <option key={cercle.id} value={cercle.id}>{cercle.nom}{cercle.ville ? ` — ${cercle.ville}` : ''}</option>)}
-                </select>
-              </div>
-              <label htmlFor="message">{formulaire.message}</label><textarea id="message" name="message" rows="5" maxLength={2500} required />
-              <p className="formInfo" id="form-info">{canContact ? formulaire.information : formulaire.indisponible}</p>
-              <button className="btn btnPlein" type="submit" disabled={!canContact || formStatus.state === 'sending'}>
-                {formStatus.state === 'sending' ? (formulaire.envoiEnCours || 'Envoi en cours…') : formulaire.envoyer}
-                <span aria-hidden="true">↓</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-    </main>
-
-    {/* Modale de lecture complète de l'article sur la Page d'accueil */}
-    {selectedArticle && (
-      <div
-        className="gazetteDialogBackdrop"
-        role="presentation"
-        onClick={event => { if (event.target === event.currentTarget) setSelectedArticle(null); }}
-      >
-        <article className="gazetteDialog" role="dialog" aria-modal="true" aria-labelledby="article-title" style={{ maxWidth: '840px', maxHeight: '92vh', overflowY: 'auto' }}>
-          <button type="button" className="gazetteDialogClose" aria-label="Fermer" onClick={() => setSelectedArticle(null)}>×</button>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-            {selectedArticle.kicker && (
-              <span style={{ fontWeight: '800', letterSpacing: '0.08em', color: '#8d2631', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-                {selectedArticle.kicker}
-              </span>
-            )}
-            {selectedArticle.location && (
-              <span style={{ background: '#0b1729', color: '#fbf9f4', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
-                📍 {selectedArticle.location}
-              </span>
-            )}
-            <span style={{ color: '#4e5a60', fontSize: '0.82rem' }}>· {selectedArticle.category || selectedArticle.categorie || 'Gazette'}</span>
-            {selectedArticle.readingTime && (
-              <span style={{ color: '#4e5a60', fontSize: '0.82rem' }}>· ⏱ Lecture {selectedArticle.readingTime} min</span>
-            )}
-          </div>
-
-          <h2 id="article-title" style={{ fontSize: '2.1rem', lineHeight: '1.25', margin: '0 0 0.6rem', fontFamily: 'serif', color: '#0b1729' }}>
-            {selectedArticle.title || selectedArticle.titre}
-          </h2>
-
-          {selectedArticle.subtitle && (
-            <p style={{ fontSize: '1.15rem', lineHeight: '1.45', color: '#4e5a60', fontStyle: 'italic', margin: '0 0 1rem' }}>
-              {selectedArticle.subtitle}
-            </p>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', paddingBottom: '1rem', borderBottom: '1px solid #d9d4c8', marginBottom: '1.3rem' }}>
-            {selectedArticle.authorAvatar?.url && (
-              <img
-                src={selectedArticle.authorAvatar.url}
-                alt={selectedArticle.authorName || ''}
-                style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
-              />
-            )}
-            <div>
-              <p style={{ margin: 0, fontWeight: '700', fontSize: '0.95rem', color: '#0b1729' }}>
-                Par {selectedArticle.authorName || 'La rédaction'}
-              </p>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#4e5a60' }}>
-                {selectedArticle.authorRole ? `${selectedArticle.authorRole} · ` : ''}Publié le {formatDate(selectedArticle.officialPublishedAt || selectedArticle._createdAt)}
-              </p>
-            </div>
-          </div>
-
-          {selectedArticle.image?.url && (
-            <figure style={{ margin: '0 0 1.5rem' }}>
-              <img
-                src={selectedArticle.image.url}
-                alt={selectedArticle.image.alt || selectedArticle.title}
-                style={{ width: '100%', borderRadius: '8px', objectFit: 'cover', maxHeight: '420px' }}
-              />
-              {(selectedArticle.image.caption || selectedArticle.image.credit) && (
-                <figcaption style={{ fontSize: '0.82rem', color: '#4e5a60', marginTop: '0.4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <span>{selectedArticle.image.caption}</span>
-                  {selectedArticle.image.credit && <span>© {selectedArticle.image.credit}</span>}
-                </figcaption>
-              )}
-            </figure>
-          )}
-
-          {selectedArticle.excerpt && (
-            <div style={{ fontSize: '1.18rem', fontWeight: '500', lineHeight: '1.65', color: '#0b1729', paddingLeft: '1.1rem', borderLeft: '4px solid #8d2631', marginBottom: '1.6rem' }}>
-              {selectedArticle.excerpt}
-            </div>
-          )}
-
-          {selectedArticle.factbox && (selectedArticle.factbox.title || (Array.isArray(selectedArticle.factbox.items) && selectedArticle.factbox.items.length > 0)) && (
-            <aside style={{ margin: '1.5rem 0', padding: '1.2rem 1.4rem', background: '#f4eee3', border: '1px solid #d9d4c8', borderTop: '3px solid #8d2631', borderRadius: '6px' }}>
-              <h4 style={{ margin: '0 0 0.6rem', color: '#8d2631', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                📌 {selectedArticle.factbox.title || 'Repères'}
-              </h4>
-              <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.7', color: '#2b363c' }}>
-                {(selectedArticle.factbox.items || []).map((item, idx) => (
-                  <li key={idx} style={{ marginBottom: '0.4rem' }}>{item}</li>
-                ))}
-              </ul>
-            </aside>
-          )}
-
-          {selectedArticle.quote?.text && (
-            <blockquote style={{ margin: '1.8rem 0', padding: '1.2rem 1.6rem', background: '#f4eee3', borderLeft: '4px solid #8d2631', borderRadius: '4px', fontStyle: 'italic', fontSize: '1.15rem', color: '#0b1729' }}>
-              « {selectedArticle.quote.text} »
-              {selectedArticle.quote.author && (
-                <cite style={{ display: 'block', fontSize: '0.88rem', color: '#4e5a60', marginTop: '0.5rem', fontStyle: 'normal' }}>
-                  — {selectedArticle.quote.author}
-                </cite>
-              )}
-            </blockquote>
-          )}
-
-          <div style={{ whiteSpace: 'pre-line', lineHeight: '1.9', fontSize: '1.08rem', color: '#2b363c' }}>
-            {selectedArticle.body || selectedArticle.description}
-          </div>
-
-          {Array.isArray(selectedArticle.gallery) && selectedArticle.gallery.length > 0 && (
-            <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #d9d4c8' }}>
-              <h4 style={{ margin: '0 0 1rem', fontSize: '1.1rem', color: '#0b1729' }}>📸 En images</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-                {selectedArticle.gallery.map((img, idx) => (
-                  <figure key={idx} style={{ margin: 0 }}>
-                    <img src={img.url} alt={img.alt || `Photo ${idx + 1}`} style={{ width: '100%', borderRadius: '6px', height: '180px', objectFit: 'cover' }} />
-                    {img.caption && <figcaption style={{ fontSize: '0.78rem', color: '#4e5a60', marginTop: '0.3rem' }}>{img.caption}</figcaption>}
-                  </figure>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {Array.isArray(selectedArticle.tags) && selectedArticle.tags.length > 0 && (
-            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #d9d4c8', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#4e5a60' }}>Mots-clés :</span>
-              {selectedArticle.tags.map((tag, idx) => (
-                <span key={idx} style={{ fontSize: '0.78rem', background: '#eee9de', border: '1px solid #d9d4c8', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#2b363c' }}>
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </article>
-      </div>
-    )}
-
-    <footer>
-      <div className="hero">
-        <p>{footer.surtitre}</p><h2 className="title">{footer.titre}<br />{footer.titreSuite}</h2>
-        <ContentLink className="btn" value={footer.soutien} arrow="↓" />
-      </div>
-      <div className="footer-bottom">
-        <div className="footer-left"><img src={footer.logo?.url || navigation.logo?.url || LogoImage} alt={footer.logo?.alt || footer.logoAlt} loading="lazy" /><p>{footer.copyright}</p></div>
-        <div className="footer-right">{footer.liens.map((link, index) => <ContentLink key={link._key || index} value={link} arrow={link.href === '#acceuil' ? '↑' : '↓'} />)}</div>
-      </div>
-    </footer>
-  </div>;
+  </main>;
 }
 
 function App() {
-  const invitation = getInviteSession();
-  if (window.location.pathname === '/activer-compte') return <ActivateAccount />;
-  if (window.location.pathname === '/cal' && invitation) {
-    window.history.replaceState({}, document.title, `/activer-compte${window.location.hash}`);
-    return <ActivateAccount />;
+  const [content, setContent] = useState(defaultContent);
+  const [publishedArticles, setPublishedArticles] = useState([]);
+  const [currentArticle, setCurrentArticle] = useState(null);
+  const [articleLoading, setArticleLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!client) return undefined;
+    client.fetch(homeQuery).then((data) => {
+      if (!data) return;
+      setContent((current) => ({
+        ...current,
+        hero: {
+          ...current.hero,
+          ...(data.hero || {}),
+          text: data.hero?.description || data.hero?.text || current.hero.text,
+        },
+        presentation: {
+          ...current.presentation,
+          ...(data.presentation || {}),
+          text: portableTextToString(data.presentation?.description) || data.presentation?.text || current.presentation.text,
+        },
+        missions: { ...current.missions, ...(data.missions || {}) },
+        actualites: { ...current.actualites, ...(data.actualites || {}) },
+        evenements: { ...current.evenements, ...(data.evenements || {}) },
+        appel: { ...current.appel, ...(data.appel || {}) },
+        history: Array.isArray(data.history) && data.history.length ? data.history : current.history,
+      }));
+    }).catch(() => {
+      // The editorial fallback keeps the public page available when Sanity is not configured.
+    });
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    if (!client) return undefined;
+    const path = window.location.pathname;
+    client.fetch(articleListQuery).then(data => setPublishedArticles(Array.isArray(data) ? data : [])).catch(() => {});
+    if (path.startsWith('/actualites/')) {
+      setArticleLoading(true);
+      client.fetch(articleBySlugQuery, { slug: decodeURIComponent(path.split('/').pop()) })
+        .then((article) => {
+          setCurrentArticle(article || null);
+          if (article?.title) {
+            document.title = `${article.title} | Occitan Royaliste`;
+          }
+        })
+        .catch(() => setCurrentArticle(null))
+        .finally(() => setArticleLoading(false));
+    }
+    return undefined;
+  }, []);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  if (window.location.pathname.startsWith('/actualites/')) {
+    return (
+      <>
+        <header className="site-header article-header">
+          <a className="brand" href="/" aria-label="Occitan Royaliste, accueil"><img src={logoImage} alt="" /><span><strong>Occitan</strong><em>Royaliste</em></span></a>
+          <nav aria-label="Navigation principale">
+            <a href="/#cercle">Le cercle</a>
+            <a href="/#histoire">Histoire</a>
+            <a href="/actualites">Actualités</a>
+            <a href="/#evenements">Événements</a>
+            <a className="nav-contact" href="/#contact">Contact <span>↗</span></a>
+          </nav>
+        </header>
+        <ArticlePage article={currentArticle} loading={articleLoading} />
+        <footer className="site-footer">
+          <div className="footer-main">
+            <a className="brand footer-brand" href="/"><img src={logoImage} alt="" /><span><strong>Occitan</strong><em>Royaliste</em></span></a>
+            <p>Un cercle d’étude et de transmission<br />au cœur de Toulouse.</p>
+            <div className="footer-nav"><a href="/#cercle">Le cercle</a><a href="/#histoire">Histoire</a><a href="/actualites">Publications</a><a href="/#contact">Contact</a></div>
+          </div>
+          <div className="footer-bottom"><span>© {new Date().getFullYear()} Occitan Royaliste</span><span>Histoire · Culture · Transmission</span><a href="#contenu">Retour en haut ↑</a></div>
+        </footer>
+      </>
+    );
   }
-  return window.location.pathname === '/cal' ? <CalGazette /> : <HomePage />;
+
+  if (window.location.pathname === '/actualites' || window.location.pathname === '/actualites/') {
+    return (
+      <>
+        <header className="site-header article-header">
+          <a className="brand" href="/"><img src={logoImage} alt="" /><span><strong>Occitan</strong><em>Royaliste</em></span></a>
+          <nav aria-label="Navigation principale"><a href="/#cercle">Le cercle</a><a href="/#histoire">Histoire</a><a href="/actualites">Actualités</a><a href="/#evenements">Événements</a><a className="nav-contact" href="/#contact">Contact <span>↗</span></a></nav>
+        </header>
+        <main className="listing-page">
+          <p className="eyebrow dark">La revue</p>
+          <h1>Actualités<br /><em>et chroniques.</em></h1>
+          <div className="listing-grid">
+            {publishedArticles.map((item, index) => (
+              <article key={item._id}>
+                <a href={`/actualites/${item.slug}`} target="_blank" rel="noopener noreferrer" aria-label={`Lire ${item.title} dans un nouvel onglet`}>
+                  <div className="article-image">{item.coverUrl && <img src={item.coverUrl} alt="" />}<span>{String(index + 1).padStart(2, '0')}</span></div>
+                </a>
+                <p className="article-meta">{item.category?.title || 'Actualités'} <i /> {formatDate(item.publishedAt)}</p>
+                <h2><a href={`/actualites/${item.slug}`} target="_blank" rel="noopener noreferrer">{item.title}</a></h2>
+                <p>{item.summary || item.subtitle}</p>
+                <a className="text-link" href={`/actualites/${item.slug}`} target="_blank" rel="noopener noreferrer">Lire l’article <span>↗</span></a>
+              </article>
+            ))}
+          </div>
+          {publishedArticles.length === 0 && <p className="empty-state">Aucun article publié pour le moment.</p>}
+        </main>
+      </>
+    );
+  }
+
+  return (
+    <div className="site-shell">
+      <a className="skip-link" href="#contenu">Aller au contenu</a>
+      <header className="site-header">
+        <a className="brand" href="#accueil" onClick={closeMenu} aria-label="Occitan Royaliste, accueil">
+          <img src={logoImage} alt="" />
+          <span><strong>Occitan</strong><em>Royaliste</em></span>
+        </a>
+        <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-nav" onClick={() => setMenuOpen(!menuOpen)}>
+          <span>{menuOpen ? 'Fermer' : 'Menu'}</span><i aria-hidden="true" />
+        </button>
+        <nav id="main-nav" className={menuOpen ? 'is-open' : ''} aria-label="Navigation principale">
+          <a href="#cercle" onClick={closeMenu}>Le cercle</a>
+          <a href="#histoire" onClick={closeMenu}>Histoire</a>
+          <a href="#actualites" onClick={closeMenu}>Actualités</a>
+          <a href="#evenements" onClick={closeMenu}>Événements</a>
+          <a className="nav-contact" href="#contact" onClick={closeMenu}>Contact <span>↗</span></a>
+        </nav>
+      </header>
+
+      <main id="contenu">
+        {content.hero.visible !== false && <section className="hero" id="accueil">
+          <img className="hero-image" src={content.hero.imageUrl || heroImage} alt="Architecture classique française" />
+          <div className="hero-overlay" style={{ opacity: (content.hero.overlay ?? 35) / 100 }} />
+          <div className="hero-content">
+            <p className="eyebrow">{content.hero.eyebrow}</p>
+            <h1>{content.hero.title}</h1>
+            <p className="hero-lead">{content.hero.text}</p>
+            <div className="hero-actions">
+              <a className="button button-gold" href={content.hero.primaryButton?.href || '#cercle'}>{content.hero.primaryButton?.label || 'Découvrir le cercle'} <span>→</span></a>
+              <a className="text-link light" href={content.hero.secondaryButton?.href || '#actualites'}>{content.hero.secondaryButton?.label || 'Nos publications'} <span>↗</span></a>
+            </div>
+          </div>
+          <div className="hero-caption">Depuis Toulouse<br />Histoire · Culture · Transmission</div>
+          <a className="scroll-cue" href="#cercle" aria-label="Découvrir la suite">Défiler <span>↓</span></a>
+        </section>}
+
+        {content.presentation.visible !== false && <section className="intro section-wrap" id="cercle">
+          <div className="section-index">01 <span>Le cercle</span></div>
+          <div className="intro-grid">
+            <div>
+              <p className="eyebrow dark">Notre vocation</p>
+              <h2>{content.presentation.title}</h2>
+            </div>
+            <div className="intro-copy">
+              <p>{content.presentation.text}</p>
+              <a className="text-link" href="#adhesion">En savoir plus <span>↗</span></a>
+            </div>
+          </div>
+          <div className="rule" />
+          <div className="values">
+            {(content.missions.items?.length ? content.missions.items : [
+              { title: 'Étudier', description: 'Approfondir l’histoire de France avec exigence et curiosité.' },
+              { title: 'Partager', description: 'Faire de la culture un lien vivant entre les générations.' },
+              { title: 'Transmettre', description: 'Protéger une mémoire et la confier à l’avenir.' },
+            ]).map((item, index) => (
+              <div key={item._key || item.title || index}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <strong>{item.title}</strong>
+                <p>{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>}
+
+        <section className="history section-wrap navy-section" id="histoire">
+          <div className="section-index gold-index">02 <span>Repères historiques</span></div>
+          <div className="history-heading"><p className="eyebrow">Une histoire à connaître</p><h2>Les racines d’une<br /><em>nation.</em></h2></div>
+          <div className="history-list">
+            {content.history.map((item, index) => (
+              <article className="history-item" key={item.number || index}>
+                <span className="history-number">{item.number || `0${index + 1}`}</span>
+                <div><h3>{item.title}</h3><p>{item.text}</p><a href="#actualites" aria-label={`Lire ${item.title}`}>Lire le dossier <span>↗</span></a></div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {content.actualites.visible !== false && <section className="journal section-wrap" id="actualites">
+          <div className="section-index">03 <span>La revue</span></div>
+          <div className="journal-heading"><div><p className="eyebrow dark">{content.actualites.description || 'Chroniques & études'}</p><h2>{content.actualites.title || 'Dernières publications'}</h2></div><a className="text-link" href="/actualites">Voir toutes les publications <span>↗</span></a></div>
+          <div className="article-grid">
+            {(publishedArticles.length ? publishedArticles : articles).slice(0, 3).map((article, index) => (
+              <article className={`article-card article-${index + 1}`} key={article.title}>
+                <div className="article-image">{article.coverUrl && <img src={article.coverUrl} alt="" />}<span>{String(index + 1).padStart(2, '0')}</span></div>
+                <p className="article-meta">{article.category?.title || article.category} <i /> {article.date || formatDate(article.publishedAt)}</p>
+                <h3>{article.title}</h3>
+                <p>{article.summary || article.subtitle || article.text}</p>
+                {article.slug
+                  ? <a href={`/actualites/${article.slug}`} target="_blank" rel="noopener noreferrer">Lire l’article <span>↗</span></a>
+                  : <span className="demo-article-label">Contenu de démonstration</span>}
+              </article>
+            ))}
+          </div>
+        </section>}
+
+
+        {content.appel.visible !== false && <section className="join" id="adhesion">
+          <div className="join-inner"><p className="eyebrow">Une histoire vivante</p><h2>{content.appel.title || 'Rejoindre le cercle'}</h2><p>{content.appel.text || 'Vous souhaitez participer à nos travaux, nos rencontres ou simplement en savoir davantage ? Écrivez-nous.'}</p><a className="button button-gold" href="#contact">Prendre contact <span>→</span></a></div>
+          <div className="join-mark">✦</div>
+        </section>}
+
+        <section className="contact section-wrap" id="contact">
+          <div className="section-index">04 <span>Correspondance</span></div>
+          <div className="contact-grid"><div><p className="eyebrow dark">Nous écrire</p><h2>Entrons en<br /><em>conversation.</em></h2></div><div className="contact-copy"><p>Pour toute question sur le cercle, nos activités ou l’adhésion, adressez-nous un message.</p><a className="email-link" href="mailto:cercleactionlegitimiste-toulouse.fr">cercleactionlegitimiste-toulouse.fr <span>↗</span></a></div></div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="footer-main"><a className="brand footer-brand" href="#accueil"><img src={logoImage} alt="" /><span><strong>Occitan</strong><em>Royaliste</em></span></a><p>Un cercle d’étude et de transmission<br />au cœur de Toulouse.</p><div className="footer-nav"><a href="#cercle">Le cercle</a><a href="#histoire">Histoire</a><a href="#actualites">Publications</a><a href="#contact">Contact</a></div></div>
+        <div className="footer-bottom"><span>© {new Date().getFullYear()} Occitan Royaliste</span><span>Histoire · Culture · Transmission</span><a href="#accueil">Retour en haut ↑</a></div>
+      </footer>
+    </div>
+  );
 }
 
 export default App;
