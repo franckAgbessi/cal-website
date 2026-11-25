@@ -1,0 +1,33 @@
+[
+  {
+    "_id": "siteSettings",
+    "_type": "siteSettings",
+    "siteName": "Cercle d’Action Légitimiste de Toulouse",
+    "siteDescription": "Histoire, tradition et transmission au cœur de Toulouse.",
+    "logo": { "_type": "richImage", "alt": "Logo du Cercle d’Action Légitimiste de Toulouse", "asset": { "_type": "reference", "_ref": "image-b91c5842dbf1393b5a50822e1858a6b3d214828e-512x512-png" } },
+    "favicon": { "_type": "image", "asset": { "_type": "reference", "_ref": "image-b91c5842dbf1393b5a50822e1858a6b3d214828e-512x512-png" } },
+    "contactEmail": "contact@occitan-royaliste.fr",
+    "footerDescription": "Un cercle d’étude et de transmission au cœur de Toulouse.",
+    "defaultSeoImage": { "_type": "richImage", "alt": "Vue patrimoniale pour le partage des contenus", "asset": { "_type": "reference", "_ref": "image-8b958d277cfeb33143d948e3b1b5c865d840d171-2099x1364-jpg" } }
+  },
+  {
+    "_id": "historyPage",
+    "_type": "historyPage",
+    "title": "Des héritages à connaître, des lieux à regarder autrement.",
+    "introduction": "De Toulouse à l’histoire longue de la France, quelques chemins de lecture pour situer notre démarche.",
+    "sections": [
+      { "_key": "history-toulouse", "_type": "editorialSection", "title": "Toulouse, une mémoire singulière", "text": "La ville conserve les traces croisées de son histoire politique, religieuse et artistique. C’est un point de départ pour regarder le patrimoine local avec précision." },
+      { "_key": "history-france", "_type": "editorialSection", "title": "La continuité française", "text": "Les institutions, les dynasties et les œuvres offrent une histoire longue à étudier sans réduire sa complexité." },
+      { "_key": "history-sources", "_type": "editorialSection", "title": "Sources et transmission", "text": "Chaque dossier appelle des références identifiées. Les articles peuvent faire apparaître bibliographie et sources depuis le Studio." }
+    ],
+    "illustrations": [{ "_key": "history-image", "_type": "richImage", "alt": "Architecture classique et patrimoine français", "asset": { "_type": "reference", "_ref": "image-8b958d277cfeb33143d948e3b1b5c865d840d171-2099x1364-jpg" } }]
+  },
+  {
+    "_id": "contactPage",
+    "_type": "contactPage",
+    "title": "Faire vivre notre héritage",
+    "description": "Vous souhaitez participer à nos travaux, recevoir nos informations ou prendre part à une rencontre ? Écrivez-nous.",
+    "contactInformation": { "email": "contact@occitan-royaliste.fr", "address": "Toulouse" },
+    "socialLinks": []
+  }
+]

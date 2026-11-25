@@ -1,0 +1,88 @@
+[
+  {
+    "_id": "siteSettings",
+    "_type": "siteSettings",
+    "siteName": "Cercle d’Action Légitimiste de Toulouse",
+    "siteDescription": "Histoire, tradition et transmission au cœur de Toulouse.",
+    "logo": { "_type": "richImage", "alt": "Logo du Cercle d’Action Légitimiste de Toulouse", "asset": { "_type": "reference", "_ref": "image-b91c5842dbf1393b5a50822e1858a6b3d214828e-512x512-png" } },
+    "favicon": { "_type": "image", "asset": { "_type": "reference", "_ref": "image-b91c5842dbf1393b5a50822e1858a6b3d214828e-512x512-png" } },
+    "contactEmail": "contact@occitan-royaliste.fr",
+    "navigation": [
+      { "_key": "nav-circle", "_type": "cta", "label": "Le Cercle", "href": "/#le-cercle" },
+      { "_key": "nav-history", "_type": "cta", "label": "Histoire", "href": "/#histoire" },
+      { "_key": "nav-news", "_type": "cta", "label": "Actualités", "href": "/actualites" },
+      { "_key": "nav-contact", "_type": "cta", "label": "Contact", "href": "/#contact" }
+    ],
+    "footerDescription": "Un cercle d’étude et de transmission au cœur de Toulouse.",
+    "footerLinks": [
+      { "_key": "footer-legal", "_type": "cta", "label": "Mentions légales", "href": "/mentions-legales" }
+    ],
+    "defaultSeoImage": { "_type": "richImage", "alt": "Vue patrimoniale pour le partage des contenus", "asset": { "_type": "reference", "_ref": "image-8b958d277cfeb33143d948e3b1b5c865d840d171-2099x1364-jpg" } },
+    "seo": { "_type": "seo", "title": "Occitan Royaliste — Cercle d’Action Légitimiste de Toulouse", "description": "Histoire, tradition et transmission au cœur de Toulouse." }
+  },
+  {
+    "_id": "homePage",
+    "_type": "homePage",
+    "heroTitle": "L’héritage de la France, l’âme de Toulouse.",
+    "heroSubtitle": "HISTOIRE · TRADITION · TRANSMISSION",
+    "heroDescription": "Le Cercle d’Action Légitimiste de Toulouse œuvre à la connaissance, à la transmission et au rayonnement de l’histoire monarchique française, de ses traditions et de son patrimoine.",
+    "heroImage": { "_type": "richImage", "alt": "Façade d’architecture classique française", "asset": { "_type": "reference", "_ref": "image-8b958d277cfeb33143d948e3b1b5c865d840d171-2099x1364-jpg" } },
+    "heroPrimaryCTA": { "_type": "cta", "label": "Découvrir notre cercle", "href": "/#le-cercle" },
+    "heroSecondaryCTA": { "_type": "cta", "label": "Lire nos publications", "href": "/actualites" },
+    "introductionTitle": "Étudier, transmettre, faire vivre.",
+    "introductionText": "Le Cercle est un lieu de rencontre et de réflexion ouvert à celles et ceux qui souhaitent approfondir l’histoire de France, la mémoire monarchique et le patrimoine toulousain. Nos activités privilégient l’étude, l’échange et la transmission.",
+    "introductionImage": { "_type": "richImage", "alt": "Patrimoine architectural français", "asset": { "_type": "reference", "_ref": "image-c8cf17017f932e12f7b5e731c949b5517750d133-1672x941-png" } },
+    "featuredArticlesTitle": "À la une",
+    "featuredArticlesDescription": "Regards sur notre histoire et notre héritage.",
+    "historicalQuote": "Une citation historique sourcée peut être ajoutée ici.",
+    "historicalQuoteAuthor": "Section à compléter avec une source vérifiable.",
+    "joinSection": { "_type": "editorialSection", "title": "Faire vivre notre héritage", "text": "Vous souhaitez participer à nos travaux, recevoir nos informations ou prendre part à une rencontre ? Écrivez-nous.", "link": { "_type": "cta", "label": "Nous contacter", "href": "/#contact" } },
+    "seo": { "_type": "seo", "title": "Occitan Royaliste — Toulouse", "description": "Le Cercle d’Action Légitimiste de Toulouse : histoire, patrimoine et transmission." }
+  },
+  {
+    "_id": "aboutPage",
+    "_type": "aboutPage",
+    "title": "Étudier, transmettre, faire vivre.",
+    "introduction": "Le Cercle est un lieu de rencontre et de réflexion ouvert à celles et ceux qui souhaitent approfondir l’histoire de France, la mémoire monarchique et le patrimoine toulousain. Nos activités privilégient l’étude, l’échange et la transmission.",
+    "sections": [
+      { "_key": "about-transmission", "_type": "editorialSection", "title": "Un lieu de transmission", "text": "Le Cercle réunit celles et ceux qui souhaitent approfondir l’histoire de France, la mémoire monarchique et le patrimoine de Toulouse." },
+      { "_key": "about-practice", "_type": "editorialSection", "title": "Une pratique partagée", "text": "Lectures, conférences, visites et échanges donnent à cette recherche un cadre concret, au fil des saisons." }
+    ],
+    "images": [{ "_key": "about-image", "_type": "richImage", "alt": "Patrimoine architectural français", "asset": { "_type": "reference", "_ref": "image-c8cf17017f932e12f7b5e731c949b5517750d133-1672x941-png" } }],
+    "history": [],
+    "missions": [],
+    "callsToAction": [{ "_key": "about-contact", "_type": "cta", "label": "Nous contacter", "href": "/#contact" }],
+    "seo": { "_type": "seo", "title": "Le Cercle — Occitan Royaliste", "description": "La démarche et les activités du Cercle d’Action Légitimiste de Toulouse." }
+  },
+  {
+    "_id": "historyPage",
+    "_type": "historyPage",
+    "title": "Des héritages à connaître, des lieux à regarder autrement.",
+    "introduction": "De Toulouse à l’histoire longue de la France, quelques chemins de lecture pour situer notre démarche.",
+    "sections": [
+      { "_key": "history-toulouse", "_type": "editorialSection", "title": "Toulouse, une mémoire singulière", "text": "La ville conserve les traces croisées de son histoire politique, religieuse et artistique. C’est un point de départ pour regarder le patrimoine local avec précision." },
+      { "_key": "history-france", "_type": "editorialSection", "title": "La continuité française", "text": "Les institutions, les dynasties et les œuvres offrent une histoire longue à étudier sans réduire sa complexité." },
+      { "_key": "history-sources", "_type": "editorialSection", "title": "Sources et transmission", "text": "Chaque dossier appelle des références identifiées. Les articles peuvent faire apparaître bibliographie et sources depuis le Studio." }
+    ],
+    "illustrations": [{ "_key": "history-image", "_type": "richImage", "alt": "Architecture classique et patrimoine français", "asset": { "_type": "reference", "_ref": "image-8b958d277cfeb33143d948e3b1b5c865d840d171-2099x1364-jpg" } }],
+    "images": [],
+    "references": [],
+    "seo": { "_type": "seo", "title": "Histoire & patrimoine — Occitan Royaliste", "description": "Repères historiques et patrimoniaux du Cercle d’Action Légitimiste de Toulouse." }
+  },
+  {
+    "_id": "contactPage",
+    "_type": "contactPage",
+    "title": "Faire vivre notre héritage",
+    "description": "Vous souhaitez participer à nos travaux, recevoir nos informations ou prendre part à une rencontre ? Écrivez-nous.",
+    "contactInformation": { "email": "contact@occitan-royaliste.fr", "address": "Toulouse" },
+    "socialLinks": [],
+    "seo": { "_type": "seo", "title": "Contact — Occitan Royaliste", "description": "Prendre contact avec le Cercle d’Action Légitimiste de Toulouse." }
+  },
+  { "_type": "category", "title": "Histoire de France", "slug": { "_type": "slug", "current": "histoire-de-france" }, "description": "Études et repères sur l’histoire française.", "order": 1 },
+  { "_type": "category", "title": "Toulouse & Occitanie", "slug": { "_type": "slug", "current": "toulouse-occitanie" }, "description": "Patrimoine, mémoire et culture toulousains.", "order": 2 },
+  { "_type": "category", "title": "Monarchie", "slug": { "_type": "slug", "current": "monarchie" }, "description": "Institutions, dynasties et pensée monarchique.", "order": 3 },
+  { "_type": "category", "title": "Patrimoine", "slug": { "_type": "slug", "current": "patrimoine" }, "description": "Lieux, œuvres et traditions à transmettre.", "order": 4 },
+  { "_type": "category", "title": "Vie du Cercle", "slug": { "_type": "slug", "current": "vie-du-cercle" }, "description": "Rencontres, activités et informations associatives.", "order": 5 },
+  { "_type": "category", "title": "Actualités", "slug": { "_type": "slug", "current": "actualites" }, "description": "Nouvelles et annonces du Cercle.", "order": 6 },
+  { "_type": "author", "name": "La rédaction", "slug": { "_type": "slug", "current": "la-redaction" }, "role": "Cercle d’Action Légitimiste de Toulouse", "biography": [{ "_key": "author-bio", "_type": "block", "style": "normal", "markDefs": [], "children": [{ "_key": "author-bio-text", "_type": "span", "marks": [], "text": "Les publications du Cercle d’Action Légitimiste de Toulouse." }] }] }
+]

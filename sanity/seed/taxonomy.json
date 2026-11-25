@@ -1,0 +1,9 @@
+[
+  { "_type": "category", "title": "Histoire de France", "slug": { "_type": "slug", "current": "histoire-de-france" }, "description": "Études et repères sur l’histoire française.", "order": 1 },
+  { "_type": "category", "title": "Toulouse & Occitanie", "slug": { "_type": "slug", "current": "toulouse-occitanie" }, "description": "Patrimoine, mémoire et culture toulousains.", "order": 2 },
+  { "_type": "category", "title": "Monarchie", "slug": { "_type": "slug", "current": "monarchie" }, "description": "Institutions, dynasties et pensée monarchique.", "order": 3 },
+  { "_type": "category", "title": "Patrimoine", "slug": { "_type": "slug", "current": "patrimoine" }, "description": "Lieux, œuvres et traditions à transmettre.", "order": 4 },
+  { "_type": "category", "title": "Vie du Cercle", "slug": { "_type": "slug", "current": "vie-du-cercle" }, "description": "Rencontres, activités et informations associatives.", "order": 5 },
+  { "_type": "category", "title": "Actualités", "slug": { "_type": "slug", "current": "actualites" }, "description": "Nouvelles et annonces du Cercle.", "order": 6 },
+  { "_type": "author", "name": "La rédaction", "slug": { "_type": "slug", "current": "la-redaction" }, "role": "Cercle d’Action Légitimiste de Toulouse", "biography": [{ "_key": "author-bio", "_type": "block", "style": "normal", "markDefs": [], "children": [{ "_key": "author-bio-text", "_type": "span", "marks": [], "text": "Les publications du Cercle d’Action Légitimiste de Toulouse." }] }] }
+]

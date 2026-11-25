@@ -1,54 +1,39 @@
-# CAL — Site & Gazette des CAL (ReactJS + Sanity)
+# Occitan Royaliste — Cercle d’Action Légitimiste de Toulouse
 
-Ce projet fonctionne **100% en frontend avec ReactJS et Sanity CMS**. Il ne nécessite **aucun backend ni serveur d'API**.
+Site institutionnel et revue éditoriale React, administrés avec Sanity Studio.
 
----
+## Démarrer
 
-## Fonctionnalités
-
-1. **Site vitrine (`/`)** : Présentation des CAL, manifeste, cercles locaux et formulaire de contact.
-2. **La Gazette des CAL (`/cal`)** :
-   * **Gestion des membres avec Sanity** : Inscription directe depuis le site (`signUp`) ou création manuelle d'utilisateurs (`calMember`) dans le Sanity Studio.
-   * **Connexion / Authentification** : Vérification des identifiants et mot de passe directement via le client Sanity (mots de passe hachés en SHA-256).
-   * **Consultation d'articles** : Lecture des articles officiels et des contributions des membres.
-   * **Rédaction d'articles** : Soumission directe d'articles et téléversement d'images directement vers Sanity (`calArticle`).
-3. **Studio Sanity (`npm run sanity`)** : Interface visuelle pour gérer les membres, relire les articles et publier les contenus.
-
----
-
-## Variables d'environnement (`.env.local`)
-
-Créez un fichier `.env.local` à la racine :
-
-```env
-REACT_APP_SANITY_PROJECT_ID=gacrkjml
-REACT_APP_SANITY_DATASET=production
-
-# Token Sanity avec droits d'écriture (Editor ou Write)
-# Nécessaire pour permettre la création de comptes membres et le téléversement d'articles
-REACT_APP_SANITY_WRITE_TOKEN=votre-token-sanity-write
-
-# Optionnel : le frontend utilise uniquement ce client en lecture
-REACT_APP_SANITY_API_VERSION=2024-01-01
+```bash
+npm install
+cp .env.example .env.local
+npm start
 ```
+
+Le site est accessible sur `http://localhost:3000`. Le Studio se lance avec `npm run sanity`.
+
+## Variables d’environnement
+
+| Variable | Rôle |
+| --- | --- |
+| `REACT_APP_SANITY_PROJECT_ID` | Identifiant public du projet Sanity. |
+| `REACT_APP_SANITY_DATASET` | Dataset public, habituellement `production`. |
+| `REACT_APP_SANITY_API_VERSION` | Version d’API Sanity figée. |
+| `REACT_APP_SITE_URL` | URL publique du site lors du déploiement. |
+
+Le navigateur utilise uniquement le client Sanity en lecture et ne doit jamais recevoir un jeton privé.
 
 ## Administration éditoriale
 
-Le Studio Sanity contient les documents suivants :
+Les documents Sanity disponibles sont : Accueil, Article, Catégorie, Auteur, Paramètres du site, Le Cercle, Histoire & patrimoine et Contact. Les documents réutilisent les objets CTA, SEO, image enrichie, section éditoriale et référence historique.
 
-- **Page d’accueil** : singleton `accueil`, avec activation indépendante des sections, textes, médias, liens et sélections.
-- **Article** : contenu Portable Text, publication, médias, auteur, catégorie, SEO et articles associés.
-- **Auteur**, **Catégorie** et **Événement** : documents réutilisables référencés par les articles et la page d’accueil.
+Un article doit avoir le statut `Publié` pour apparaître sur le site public. Les brouillons et contenus archivés ne sont jamais demandés par les requêtes publiques. En l’absence de contenu Sanity, le site présente uniquement des contenus de démonstration clairement identifiés.
 
-Lancez le Studio avec `npm run sanity`, puis créez un document **Page d’accueil** et publiez-le. Les articles publiés avec le statut `Publié` apparaissent automatiquement dans la page d’accueil et sur `/actualites`. Un article est accessible via `/actualites/<slug>`.
+## Vérifications et déploiement
 
-Le frontend ne lit jamais le token d'écriture. Ne définissez `REACT_APP_SANITY_WRITE_TOKEN` que pour les outils qui en ont réellement besoin et ne le publiez jamais côté navigateur.
+```bash
+npm run build
+npx sanity schema validate
+```
 
----
-
-## Commandes disponibles
-
-* `npm start` ou `npm run dev` : Démarre l'application React en local sur `http://localhost:3000`.
-* `npm run sanity` : Lance le Studio Sanity en local sur `http://localhost:3333` pour gérer les membres et les articles.
-* `npm run build` : Compile le site en fichiers statiques dans le dossier `build/` (déployable sur Vercel, Netlify, Hostinger ou GitHub Pages).
-* `npm test` : Lance la suite de tests unitaires.
+Le build statique est produit dans `build/` et peut être déployé sur Vercel, Netlify ou tout hébergement statique configuré pour rediriger les routes vers `index.html`.

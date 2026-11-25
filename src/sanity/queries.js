@@ -1,9 +1,14 @@
-export {
-  homeQuery,
-  articleListQuery,
-  articleBySlugQuery,
-  categoryQuery,
-  articlesByCategoryQuery,
-  authorQuery,
-  articlesByAuthorQuery,
-} from '../SanityConnect';
+const imageFields = `"coverUrl": coalesce(coverImage.asset->url, cover.asset->url), "coverAlt": coalesce(coverImageAlt, cover.alt, title)`;
+
+export const siteSettingsQuery = `*[_type == "siteSettings"][0]{siteName, siteDescription, contactEmail, footerDescription, socialLinks, "logoUrl": logo.asset->url}`;
+export const homePageQuery = `*[_type in ["homePage", "accueil"]][0]{heroTitle, heroSubtitle, heroDescription, "heroImageUrl": heroImage.asset->url, heroPrimaryCTA, heroSecondaryCTA, introductionTitle, introductionText, "introductionImageUrl": introductionImage.asset->url, featuredArticlesTitle, featuredArticlesDescription, historicalQuote, historicalQuoteAuthor, joinSection, hero{title, eyebrow, description, "imageUrl": image.asset->url, primaryButton, secondaryButton}, presentation{title, description, "imageUrl": image.asset->url}, actualites, quote, appel}`;
+export const articleCardFields = `_id, title, "slug": slug.current, "excerpt": coalesce(excerpt, summary, subtitle), publishedAt, updatedAt, featured, readingTime, ${imageFields}, "category": category->{title, "slug": slug.current}, "author": author->{name, role}`;
+export const latestArticlesQuery = `*[_type == "article" && (!defined(status) || status == "published") && !(_id in path("drafts.**"))] | order(featured desc, publishedAt desc)[0...4]{${articleCardFields}}`;
+export const categoriesQuery = `*[_type in ["category", "categorie"]] | order(order asc, title asc){_id, title, "slug": slug.current, description}`;
+export const featuredArticleQuery = `*[_type == "article" && (!defined(status) || status == "published") && featured == true && !(_id in path("drafts.**"))] | order(publishedAt desc)[0]{${articleCardFields}}`;
+export const articleListQuery = `*[_type == "article" && (!defined(status) || status == "published") && !(_id in path("drafts.**")) && ($category == null || category->slug.current == $category) && ($search == null || title match $search || excerpt match $search || summary match $search)] | order(publishedAt desc)[$start...$end]{${articleCardFields}}`;
+export const articleCountQuery = `count(*[_type == "article" && (!defined(status) || status == "published") && !(_id in path("drafts.**")) && ($category == null || category->slug.current == $category) && ($search == null || title match $search || excerpt match $search || summary match $search)])`;
+export const articleBySlugQuery = `*[_type == "article" && (!defined(status) || status == "published") && !(_id in path("drafts.**")) && slug.current == $slug][0]{${articleCardFields}, body, coverImageCaption, caption, credit, bibliography, sources, seo, relatedArticles[]->{${articleCardFields}}, related[]->{${articleCardFields}}}`;
+export const aboutPageQuery = `*[_type == "aboutPage"][0]{title, introduction, history, missions, images, sections, callsToAction, seo}`;
+export const historyPageQuery = `*[_type == "historyPage"][0]{title, introduction, sections, illustrations, references, seo}`;
+export const contactPageQuery = `*[_type == "contactPage"][0]{title, description, contactInformation, socialLinks, seo}`;

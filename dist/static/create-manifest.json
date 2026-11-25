@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-11-20T20:50:16.191Z",
+  "createdAt": "2026-11-25T09:51:39.755Z",
   "studioVersion": "6.23.0",
   "version": 3,
   "workspaces": [
@@ -15,7 +15,7 @@
       },
       "name": "cal-members",
       "projectId": "gacrkjml",
-      "schema": "025af59d.create-schema.json",
+      "schema": "c3f0dc40.create-schema.json",
       "title": "Gazette CAL — membres",
       "tools": "a1fd46b5.create-tools.json"
     }
